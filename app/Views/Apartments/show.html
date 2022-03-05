@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>BookingApp</title>
+    <link rel="stylesheet" href="../../style.css">
+</head>
+<body id="body">
+
+<header id="header">
+
+</header>
+<p>
+    <a href="/apartments">Back</a>
+</p>
+<br>
+<h2>One apartment</h2>
+
+<div id="content">
+<ul>
+    <li>
+        Name: {{ apartment.name }}
+        <br>
+        Address:  {{ apartment.address }}
+        <br>
+        Description:  {{ apartment.description }}
+        <br>
+        Available from:  {{ apartment.availableFrom }}
+        <br>
+        Available to:  {{ apartment.availableTo }}
+        <br>
+        Owner ID:  {{ apartment.ownerId }}
+    </li>
+</ul>
+</div>
+</body>
+</html>

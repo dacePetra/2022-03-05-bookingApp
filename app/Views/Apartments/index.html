@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>BookingApp</title>
+    <link rel="stylesheet" href="../../style.css">
+</head>
+<body id="body">
+
+<header id="header">
+
+</header>
+<h2>All apartments</h2>
+<p>
+    (<a href="/apartments/create">Create</a>)
+</p>
+<div id="content">
+<ul>
+    {% for apartment in apartments %}
+    <li>
+        Name: <a class="nomargin" href="/apartments/{{ apartment.id }}">{{ apartment.name }}</a>
+        <br>
+        Address:  {{ apartment.address }}
+        <br>
+        Description:  {{ apartment.description }}
+        <br>
+        Available from:  {{ apartment.availableFrom }}
+        <br>
+        Available to:  {{ apartment.availableTo }}
+        <br>
+        Owner ID:  {{ apartment.ownerId }}
+    </li>
+    <br>
+    {% endfor %}
+</ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>BookingApp</title>
+    <link rel="stylesheet" href="../../style.css">
+</head>
+<body id="body">
+
+<header id="header">
+
+</header>
+<p>
+    <a href="/apartments">Back</a>
+</p>
+<br>
+<h2>Create apartment</h2>
+
+<form method="post" action="/apartments">
+    <div>
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name"/>
+    </div>
+    <br>
+    <div>
+        <label for="address">Address:</label><br>
+        <input type="text" id="address" name="address"/>
+    </div>
+    <br>
+    <div>
+        <label for="description">Description:</label><br>
+        <textarea id="description" name="description" ></textarea>
+    </div>
+    <br>
+    <div>
+        <label for="available_from">Available from:</label><br>
+        <input type="date" id="available_from" name="available_from" />
+    </div>
+    <br>
+    <div>
+        <label for="available_to">Available to:</label><br>
+        <input type="date" id="available_to"name ="available_to" />
+    </div>
+    <br>
+    <div>
+        <button type="submit">Create</button>
+    </div>
+</form>
+</body>
+</html>

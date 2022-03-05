@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <title>BookingApp</title>
+    <link rel="stylesheet" href="../../style.css">
+</head>
+<body id="body">
+
+<header id="header">
+
+</header>
+<h2>All users</h2>
+<div id="content">
+    {% for user in users %}
+
+    <li>
+        {{ user.email }}
+    </li>
+    <br>
+    {% endfor %}
+</div>
+
+</body>
+</html>
