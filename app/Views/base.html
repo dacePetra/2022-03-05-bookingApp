@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}BookingApp{% endblock %}</title>
+    <link rel="stylesheet" href="../../style.css">
+</head>
+<body id="body">
+{% block body %}
+<header id="header">
+    {% block header %}
+    {% if active != "" %}
+    <h4>Welcome, {{ active }}!</h4>
+    <small>
+        <a class="top" href="/users/logout">Log out</a>
+    </small>
+    {% endif %}
+    {% endblock %}
+</header>
+<div id="content">
+    {% block content %}
+    <p id="back">
+        {% block back %}
+        {% endblock %}
+    </p>
+    {% endblock %}
+</div>
+{% endblock %}
+</body>
+</html>

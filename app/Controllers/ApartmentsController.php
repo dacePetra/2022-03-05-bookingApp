@@ -6,6 +6,7 @@ use App\Database;
 use App\Models\Apartment;
 use App\Redirect;
 use App\Views\View;
+use Carbon\Carbon;
 
 class ApartmentsController
 {
@@ -38,25 +39,25 @@ class ApartmentsController
 
     public function show(array $vars): View
     {
-        $apartmentId = (int) $vars['id'];
+        $apartmentId = (int)$vars['id'];
         $apartmentQuery = Database::connection()
             ->createQueryBuilder()
             ->select('*')
             ->from('apartments')
             ->where('id = ?')
-            ->setParameter(0, (int) $vars['id'])
+            ->setParameter(0, (int)$vars['id'])
             ->executeQuery()
             ->fetchAssociative();
 
         $apartment = new Apartment(
-                $apartmentQuery['id'],
-                $apartmentQuery['name'],
-                $apartmentQuery['address'],
-                $apartmentQuery['description'],
-                $apartmentQuery['available_from'],
-                $apartmentQuery['available_to'],
-                $apartmentQuery['owner_id']
-            );
+            $apartmentQuery['id'],
+            $apartmentQuery['name'],
+            $apartmentQuery['address'],
+            $apartmentQuery['description'],
+            $apartmentQuery['available_from'],
+            $apartmentQuery['available_to'],
+            $apartmentQuery['owner_id']
+        );
 
         return new View('Apartments/show', [
             'apartment' => $apartment
@@ -73,16 +74,31 @@ class ApartmentsController
     {
 
         if (empty($_POST['name']) || empty($_POST['address']) || empty($_POST['description'])) {
-            //empty name/address/description
+            //empty name/address/description                   TODO error messages
             return new Redirect('/articles/create');
         }
+
+        $dt = Carbon::now();
+
+        if (empty($_POST['available_from'])) {
+            $availableFrom = $dt->toDateString();
+        } else {
+            $availableFrom = $_POST['available_from'];
+        }
+        $endOfYear = $dt->endOfYear()->toDateString();
+        if (empty($_POST['available_to'])) {
+            $availableTo = $endOfYear;
+        } else {
+            $availableTo = $_POST['available_to'];
+        }
+
         Database::connection()
             ->insert('apartments', [
                 'name' => $_POST['name'],
                 'address' => $_POST['address'],
                 'description' => $_POST['description'],
-                'available_from' => $_POST['available_from'],
-                'available_to' => $_POST['available_to'],
+                'available_from' => $availableFrom,
+                'available_to' => $availableTo,
                 'owner_id' => 1
             ]);
 

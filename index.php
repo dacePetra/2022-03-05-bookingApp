@@ -1,16 +1,32 @@
 <?php
 session_start();
 
+use App\Controllers\WelcomeController;
+use App\Controllers\UsersController;
 use App\Controllers\ApartmentsController;
 use App\Redirect;
 use App\Views\View;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
-use App\Controllers\UsersController;
+
 
 require_once 'vendor/autoload.php';
 
 $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
+
+    $r->addRoute('GET', '/', [WelcomeController::class, 'opening']);
+    $r->addRoute('GET', '/welcome', [WelcomeController::class, 'welcome']);
+
+    $r->addRoute('GET', '/users/signup', [UsersController::class, 'signup']);
+    $r->addRoute('POST', '/users', [UsersController::class, 'register']);
+
+    $r->addRoute('GET', '/users/login', [UsersController::class, 'login']);
+    $r->addRoute('POST', '/users/login', [UsersController::class, 'enter']);
+
+    $r->addRoute('GET', '/users/logout', [UsersController::class, 'logout']);
+
+    $r->addRoute('GET', '/users', [UsersController::class, 'index']);
+    $r->addRoute('GET', '/users/{id:\d+}', [UsersController::class, 'show']);
 
     $r->addRoute('GET', '/apartments', [ApartmentsController::class, 'index']);
     $r->addRoute('GET', '/apartments/{id:\d+}', [ApartmentsController::class, 'show']);
@@ -39,7 +55,7 @@ switch ($routeInfo[0]) {
         var_dump("405 Method Not Allowed");
         break;
     case FastRoute\Dispatcher::FOUND:
-        $handler = $routeInfo[1];   // routeInfo array is in brackets addRoute(0=>'GET', 1=>'/articles/{id:\d+}/edit', 2=>[ArticlesController::class, 'index'])
+        $handler = $routeInfo[1];
         $controller = $handler[0];
         $method = $handler[1];
         $vars = $routeInfo[2];

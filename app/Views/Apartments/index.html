@@ -13,21 +13,14 @@
 <p>
     (<a href="/apartments/create">Create</a>)
 </p>
+<br>
 <div id="content">
 <ul>
     {% for apartment in apartments %}
     <li>
-        Name: <a class="nomargin" href="/apartments/{{ apartment.id }}">{{ apartment.name }}</a>
+        <a class="nomargin" href="/apartments/{{ apartment.id }}">{{ apartment.name }}</a>
         <br>
-        Address:  {{ apartment.address }}
-        <br>
-        Description:  {{ apartment.description }}
-        <br>
-        Available from:  {{ apartment.availableFrom }}
-        <br>
-        Available to:  {{ apartment.availableTo }}
-        <br>
-        Owner ID:  {{ apartment.ownerId }}
+        ({{ apartment.address }})
     </li>
     <br>
     {% endfor %}
