@@ -1,34 +1,28 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <title>BookingApp</title>
-    <link rel="stylesheet" href="../../style.css">
-</head>
-<body id="body">
+{% extends "base.html" %}
 
-<header id="header">
-
-</header>
-<p>
-    <a href="/apartments">Back</a>
-</p>
+{% block content %}
+{% if active != "" %}
 <br>
+{% block back %}
+<a href="/apartments">Back</a>
+{% endblock %}
+<br><br>
 <h2>Create apartment</h2>
 
 <form method="post" action="/apartments">
     <div>
         <label for="name">Name:</label><br>
-        <input type="text" id="name" name="name"/>
+        <input type="text" id="name" name="name" value="{{ name }}"/>
     </div>
     <br>
     <div>
         <label for="address">Address:</label><br>
-        <input type="text" id="address" name="address"/>
+        <input type="text" id="address" name="address" value="{{ address }}"/>
     </div>
     <br>
     <div>
         <label for="description">Description:</label><br>
-        <textarea id="description" name="description" ></textarea>
+        <textarea  id="description" name="description" >{{ description }}</textarea>
     </div>
     <br>
     <div>
@@ -38,12 +32,12 @@
     <br>
     <div>
         <label for="available_to">Available to:</label><br>
-        <input type="date" id="available_to"name ="available_to" />
+        <input type="date" id="available_to" name ="available_to" />
     </div>
     <br>
     <div>
         <button type="submit">Create</button>
     </div>
 </form>
-</body>
-</html>
+{% endif %}
+{% endblock %}

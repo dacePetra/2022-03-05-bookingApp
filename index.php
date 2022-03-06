@@ -33,6 +33,11 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
     $r->addRoute('GET', '/apartments/create', [ApartmentsController::class, 'create']);
     $r->addRoute('POST', '/apartments', [ApartmentsController::class, 'store']);
+
+    $r->addRoute('POST', '/apartments/{id:\d+}/delete', [ApartmentsController::class, 'delete']);
+
+    $r->addRoute('GET', '/apartments/{id:\d+}/edit', [ApartmentsController::class, 'edit']);
+    $r->addRoute('POST', '/apartments/{id:\d+}', [ApartmentsController::class, 'update']);
 });
 
 // Fetch method and URI from somewhere

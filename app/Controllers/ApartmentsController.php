@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Database;
 use App\Models\Apartment;
+use App\Models\Article;
 use App\Redirect;
 use App\Views\View;
 use Carbon\Carbon;
@@ -31,9 +32,12 @@ class ApartmentsController
                 $apartmentData['owner_id']
             );
         }
-
+        $active = $_SESSION["fullName"];
+        $activeId = (int)$_SESSION["id"];
         return new View('Apartments/index', [
-            'apartments' => $apartments
+            'apartments' => $apartments,
+            'active' => $active,
+            'activeId' => $activeId
         ]);
     }
 
@@ -45,7 +49,7 @@ class ApartmentsController
             ->select('*')
             ->from('apartments')
             ->where('id = ?')
-            ->setParameter(0, (int)$vars['id'])
+            ->setParameter(0, $apartmentId)
             ->executeQuery()
             ->fetchAssociative();
 
@@ -58,24 +62,39 @@ class ApartmentsController
             $apartmentQuery['available_to'],
             $apartmentQuery['owner_id']
         );
-
+        $active = $_SESSION["fullName"];
+        $activeId = (int)$_SESSION["id"];
         return new View('Apartments/show', [
-            'apartment' => $apartment
+            'apartment' => $apartment,
+            'active' => $active,
+            'activeId' => $activeId
         ]);
     }
 
     public function create(array $vars): View
     {
-
-        return new View('Apartments/create');
+        $name = $_SESSION["name"];
+        $address = $_SESSION["address"];
+        $description = $_SESSION["description"];
+        $active = $_SESSION["fullName"];
+        $activeId = $_SESSION["id"];
+        return new View('Apartments/create', [
+            'active' => $active,
+            'id' => $activeId,
+            'name' => $name,
+            'address' => $address,
+            'description' => $description
+        ]);
     }
 
     public function store(): Redirect
     {
-
         if (empty($_POST['name']) || empty($_POST['address']) || empty($_POST['description'])) {
-            //empty name/address/description                   TODO error messages
-            return new Redirect('/articles/create');
+            $_SESSION["name"] = $_POST['name'];
+            $_SESSION["address"] = $_POST['address'];
+            $_SESSION["description"] = $_POST['description'];
+            //empty name/address/description                   TODO error messages, time >=now and limit
+            return new Redirect('/apartments/create');
         }
 
         $dt = Carbon::now();
@@ -91,7 +110,7 @@ class ApartmentsController
         } else {
             $availableTo = $_POST['available_to'];
         }
-
+        $activeId = $_SESSION["id"];
         Database::connection()
             ->insert('apartments', [
                 'name' => $_POST['name'],
@@ -99,10 +118,90 @@ class ApartmentsController
                 'description' => $_POST['description'],
                 'available_from' => $availableFrom,
                 'available_to' => $availableTo,
-                'owner_id' => 1
+                'owner_id' => $activeId
             ]);
-
+        unset($_SESSION["name"]);
+        unset($_SESSION["address"]);
+        unset($_SESSION["description"]);
         return new Redirect('/apartments');
+    }
+
+    public function delete(array $vars): Redirect         //TODO delete also reservations
+    {
+        $apartmentId = (int)$vars['id'];
+        $apartmentQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartments')
+            ->where('id = ?')
+            ->setParameter(0, $apartmentId)
+            ->executeQuery()
+            ->fetchAssociative();
+
+        $activeId = $_SESSION["id"];
+        if ($activeId == $apartmentQuery['owner_id']) {
+            Database::connection()
+                ->delete('apartments', ['id' => $apartmentId]);
+        }
+        return new Redirect('/apartments');
+    }
+
+    public function edit(array $vars): View
+    {
+
+        $apartmentId = (int)$vars['id'];
+        $apartmentQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartments')
+            ->where('id = ?')
+            ->setParameter(0, $apartmentId)
+            ->executeQuery()
+            ->fetchAssociative();
+
+        $apartment = new Apartment(
+            $apartmentQuery['id'],
+            $apartmentQuery['name'],
+            $apartmentQuery['address'],
+            $apartmentQuery['description'],
+            $apartmentQuery['available_from'],
+            $apartmentQuery['available_to'],
+            $apartmentQuery['owner_id']
+        );
+
+        $active = $_SESSION["fullName"];
+        $activeId = $_SESSION["id"];
+
+        return new View('apartments/edit', [
+            'apartment' => $apartment,
+            'active' => $active,
+            'activeId' => $activeId
+        ]);
+    }
+
+    public function update(array $vars): Redirect
+    {
+        $apartmentId = (int)$vars['id'];
+        $apartmentQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartments')
+            ->where('id = ?')
+            ->setParameter(0, $apartmentId)
+            ->executeQuery()
+            ->fetchAssociative();
+
+        $activeId = $_SESSION["id"];
+        if ($activeId == $apartmentQuery['owner_id']) {
+            Database::connection()
+                ->update('apartments', [
+                    'name' => $_POST['name'],
+                    'address' => $_POST['address'],
+                    'description' => $_POST['description'],
+                ], ['id' => $apartmentId]
+                );
+        }
+        return new Redirect('/apartments/' . $apartmentId);
     }
 
 }

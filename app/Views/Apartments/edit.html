@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if active != "" %}
+<br>
+{% block back %}
+<a href="/apartments/{{ apartment.id }}">Back</a>
+{% endblock %}
+<h2>Edit apartment</h2>
+<form method="post" action="/apartments/{{ apartment.id }}">
+    <div>
+        <label for="name">Name:</label><br>
+        <input type="text" id="name" name="name" value="{{ apartment.name }}" />
+    </div>
+    <br>
+    <div>
+        <label for="address">Address:</label><br>
+        <input type="text" id="address" name="address" value="{{ apartment.address }}" />
+    </div>
+    <br>
+    <div>
+        <label for="description">Description:</label><br>
+        <textarea id="description" name="description">{{ apartment.description }}</textarea>
+    </div>
+    <br>
+    <div>
+        <button type="submit">Update</button>
+    </div>
+</form>
+{% endif %}
+{% endblock %}
