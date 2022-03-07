@@ -89,6 +89,12 @@ class ApartmentsController
         }
         $numberOfReviews = count($reviews);
 
+        $emptyReview = "";
+        if (isset($_SESSION['emptyReview'])) {
+            $emptyReview = $_SESSION['emptyReview'];
+            unset($_SESSION['emptyReview']);
+        }
+
         $active = $_SESSION["fullName"];
         $activeId = (int)$_SESSION["id"];
         return new View('Apartments/show', [
@@ -96,7 +102,8 @@ class ApartmentsController
             'reviews' => $reviews,
             'numberOfReviews' => $numberOfReviews,
             'active' => $active,
-            'activeId' => $activeId
+            'activeId' => $activeId,
+            'emptyReview' => $emptyReview
         ]);
     }
 

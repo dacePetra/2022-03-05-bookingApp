@@ -33,13 +33,14 @@
 <p>
 <a href="/apartments/{{ apartment.id }}/reserve">Make a reservation</a>
 </p>
-{% if reservationConfirmed == "true" %}
-<h2 style="color:red;">Reservation has been confirmed!</h2>
-{% endif %}
 <br>
 <p>
 <form method="post" action="/apartments/{{ apartment.id }}/review">
-    <div>
+        <div>
+        {% if emptyReview != "" %}
+        <small style="color:red;">{{ emptyReview }}</small>
+        <br>
+        {% endif %}
         <label for="review">Leave your review:</label><br>
         <textarea type="text" id="review" name="review"></textarea>
     </div>

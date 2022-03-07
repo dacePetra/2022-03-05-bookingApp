@@ -100,6 +100,7 @@ class UsersController
     public function register(array $vars): Redirect
     {
         if (empty($_POST['name']) || empty($_POST['surname']) || empty($_POST['birthday']) || empty($_POST['email']) || empty($_POST['password']) || empty($_POST['password_repeat'])) {
+
             // Empty input
             return new Redirect('/users/signup');
         }

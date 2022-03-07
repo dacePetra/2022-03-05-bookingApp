@@ -44,21 +44,21 @@ class ApartmentReservationsController
         if (isset($_SESSION["inputReserveFrom"])) {
             $inputReserveFrom = $_SESSION["inputReserveFrom"];
             unset($_SESSION["inputReserveFrom"]);
-        } else {
+        }else{
             $inputReserveFrom = "";
         }
 
         if (isset($_SESSION["inputReserveTo"])) {
             $inputReserveTo = $_SESSION["inputReserveTo"];
             unset($_SESSION["inputReserveTo"]);
-        } else {
+        }else{
             $inputReserveTo = "";
         }
 
         if (isset($_SESSION["reservationConfirmed"])) {
             $reservationConfirmed = $_SESSION["reservationConfirmed"];
             unset($_SESSION["reservationConfirmed"]);
-        } else {
+        }else{
             $reservationConfirmed = "false";
         }
 
@@ -79,7 +79,7 @@ class ApartmentReservationsController
         if (isset($_SESSION["invalidToDate"])) {
             $invalidToDate = $_SESSION["invalidToDate"];
             unset($_SESSION["invalidToDate"]);
-        } else {
+        }else {
             $invalidToDate = "";
         }
 
@@ -133,6 +133,7 @@ class ApartmentReservationsController
         $carbonReserveFrom = Carbon::parse($reserveFrom);
         $carbonReserveTo = Carbon::parse($reserveTo);
         $carbonToday = Carbon::parse($dt->toDateString());
+
         if(!$carbonReserveFrom->greaterThanOrEqualTo($carbonToday)){
             $_SESSION["inputReserveFrom"] = $reserveFrom;
             $_SESSION["inputReserveTo"] = $reserveTo;
@@ -140,10 +141,10 @@ class ApartmentReservationsController
             return new Redirect("/apartments/$apartmentId/reserve");
         }
 
-        if(!$carbonReserveTo->lessThanOrEqualTo($carbonToday)){
+        if(!$carbonReserveTo->greaterThan($carbonToday)){
             $_SESSION["inputReserveFrom"] = $reserveFrom;
             $_SESSION["inputReserveTo"] = $reserveTo;
-            $_SESSION["invalidToDate"] = "Invalid date, 'to' date must be larger than 'to' date";
+            $_SESSION["invalidToDate"] = "Invalid date, 'to' date must be larger than today's date";
             return new Redirect("/apartments/$apartmentId/reserve");
         }
 
