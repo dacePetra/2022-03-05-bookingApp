@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+use App\Controllers\ApartmentReservationsController;
+use App\Controllers\ApartmentReviewsController;
 use App\Controllers\WelcomeController;
 use App\Controllers\UsersController;
 use App\Controllers\ApartmentsController;
@@ -38,6 +40,12 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
     $r->addRoute('GET', '/apartments/{id:\d+}/edit', [ApartmentsController::class, 'edit']);
     $r->addRoute('POST', '/apartments/{id:\d+}', [ApartmentsController::class, 'update']);
+
+    $r->addRoute('POST', '/apartments/{id:\d+}/review', [ApartmentReviewsController::class, 'review']);
+    $r->addRoute('POST', '/apartments/{nr:\d+}/erase/{id:\d+}', [ApartmentReviewsController::class, 'erase']);
+
+    $r->addRoute('GET', '/apartments/{id:\d+}/reserve', [ApartmentReservationsController::class, 'reserve']);
+    $r->addRoute('POST', '/apartments/{id:\d+}/confirm', [ApartmentReservationsController::class, 'confirm']);
 });
 
 // Fetch method and URI from somewhere

@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Database;
 use App\Models\Apartment;
 use App\Models\Article;
+use App\Models\Comment;
+use App\Models\Review;
 use App\Redirect;
 use App\Views\View;
 use Carbon\Carbon;
@@ -62,10 +64,37 @@ class ApartmentsController
             $apartmentQuery['available_to'],
             $apartmentQuery['owner_id']
         );
+
+        $reviewsQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartment_reviews')
+            ->where('apartment_id = ?')
+            ->setParameter(0, $apartmentId)
+            ->orderBy('created_at', 'desc')
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        //check if not null, then create object
+        $reviews = [];
+        foreach ($reviewsQuery as $reviewData) {
+            $reviews [] = new Review(
+                $reviewData['apartment_id'],
+                $reviewData['created_at'],
+                $reviewData['author'],
+                $reviewData['author_id'],
+                $reviewData['text'],
+                $reviewData['id']
+            );
+        }
+        $numberOfReviews = count($reviews);
+
         $active = $_SESSION["fullName"];
         $activeId = (int)$_SESSION["id"];
         return new View('Apartments/show', [
             'apartment' => $apartment,
+            'reviews' => $reviews,
+            'numberOfReviews' => $numberOfReviews,
             'active' => $active,
             'activeId' => $activeId
         ]);
@@ -110,6 +139,8 @@ class ApartmentsController
         } else {
             $availableTo = $_POST['available_to'];
         }
+
+
         $activeId = $_SESSION["id"];
         Database::connection()
             ->insert('apartments', [
