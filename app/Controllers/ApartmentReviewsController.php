@@ -15,7 +15,7 @@ class ApartmentReviewsController
         $review = $_POST['review'];
 
         if (empty($review)) {
-            $_SESSION["emptyReview"] = "*Empty input";
+            $_SESSION["emptyReview"] = "Empty input";
             return new Redirect("/apartments/".$apartmentId);
         }
 
@@ -43,6 +43,7 @@ class ApartmentReviewsController
             ->setParameter(0, $reviewId)
             ->executeQuery()
             ->fetchAssociative();
+
         if ($activeId == $reviewQuery['author_id']) {
             Database::connection()
                 ->delete('apartment_reviews', ['id' => $reviewId]);

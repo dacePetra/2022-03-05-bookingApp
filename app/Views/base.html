@@ -4,23 +4,38 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        .fakeimg {
+            height: 200px;
+            background: #aaa;
+        }
+    </style>
     <link rel="stylesheet" href="../../style.css">
     <title>BookingApp</title>
 </head>
 <body id="body">
 {% block body %}
-<header id="header">
-    {% block header %}
-    {% if active != "" %}
-    <h4>Welcome, {{ active }}!</h4>
-    <small>
-        <a class="top" href="/users/logout">Log out</a>
-    </small>
-    {% endif %}
-    {% endblock %}
-</header>
+{% block header %}
+{% if active != "" %}
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <div class="container-fluid">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link active" href="/welcome">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link disabled">Hi, {{ active }}!</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/users/logout">Log out</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+{% endif %}
+{% endblock %}
 <div id="content">
     {% block content %}
     <p id="back">

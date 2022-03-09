@@ -8,7 +8,10 @@
 {% endblock %}
 <br><br>
 <h2>Create apartment</h2>
-
+{% if emptyInputs != "" %}
+<small style="color:red;">*{{ emptyInputs }}</small>
+<br>
+{% endif %}
 <form method="post" action="/apartments">
     <div>
         <label for="name">Name:</label><br>
@@ -33,6 +36,13 @@
     <div>
         <label for="available_to">Available to:</label><br>
         <input type="date" id="available_to" name ="available_to" />
+    </div>
+    <br>
+    <small style="color:gray;">If dates will not be provided, 'from' date will be set to today's date and 'to' date will be set to last day of this year.</small>
+    <br>
+    <div>
+        <label for="price">Price per night:</label><br>
+        <input type="text" id="price" name ="price" placeholder="100.00"/>
     </div>
     <br>
     <div>

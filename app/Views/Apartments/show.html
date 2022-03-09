@@ -13,11 +13,8 @@
     <br>
     Description: {{ apartment.description }}
     <br>
-    Available from: {{ apartment.availableFrom }}
+    {{ apartment.price }} EUR per night
     <br>
-    Available to: {{ apartment.availableTo }}
-    <br>
-    Owner ID: {{ apartment.ownerId }}
 </p>
 <p>
     {% if apartment.ownerId == activeId %}
@@ -29,11 +26,10 @@
     <button type="submit" onclick="return confirm('Are you sure you want to delete this apartment?')">Delete apartment</button>
     {% endif %}
 </form>
-<br>
 <p>
 <a href="/apartments/{{ apartment.id }}/reserve">Make a reservation</a>
 </p>
-<br>
+
 <p>
 <form method="post" action="/apartments/{{ apartment.id }}/review">
         <div>
@@ -51,12 +47,10 @@
 </form>
 </p>
 <p>
-    <br>
-<h4>REVIEWS ({{ numberOfReviews }})</h4>
-<ul>
+<h5>REVIEWS ({{ numberOfReviews }})</h5>
+<ul class="list-group">
     {% for review in reviews %}
-    <li>
-        --------------------------------------------
+    <li class="list-group-item list-group-item-success">
         <br>
         <small>{{ review.createdAt }}</small>
         <br>
@@ -71,6 +65,7 @@
         </form>
     </li>
     {% endfor %}
+    <br>
 </ul>
 </p>
 {% endif %}

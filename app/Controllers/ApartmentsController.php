@@ -31,7 +31,8 @@ class ApartmentsController
                 $apartmentData['description'],
                 $apartmentData['available_from'],
                 $apartmentData['available_to'],
-                $apartmentData['owner_id']
+                $apartmentData['owner_id'],
+                (float) $apartmentData['price']
             );
         }
         $active = $_SESSION["fullName"];
@@ -62,7 +63,8 @@ class ApartmentsController
             $apartmentQuery['description'],
             $apartmentQuery['available_from'],
             $apartmentQuery['available_to'],
-            $apartmentQuery['owner_id']
+            $apartmentQuery['owner_id'],
+            $apartmentQuery['price']
         );
 
         $reviewsQuery = Database::connection()
@@ -112,24 +114,37 @@ class ApartmentsController
         $name = $_SESSION["name"];
         $address = $_SESSION["address"];
         $description = $_SESSION["description"];
+        unset($_SESSION["name"]);
+        unset($_SESSION["surname"]);
+        unset($_SESSION["description"]);
+
         $active = $_SESSION["fullName"];
         $activeId = $_SESSION["id"];
+
+        if (isset($_SESSION["emptyInputs"])) {
+            $emptyInputs = $_SESSION["emptyInputs"];
+            unset($_SESSION["emptyInputs"]);
+        } else {
+            $emptyInputs = "";
+        }
+
         return new View('Apartments/create', [
             'active' => $active,
             'id' => $activeId,
             'name' => $name,
             'address' => $address,
-            'description' => $description
+            'description' => $description,
+            'emptyInputs' => $emptyInputs
         ]);
     }
 
     public function store(): Redirect
     {
-        if (empty($_POST['name']) || empty($_POST['address']) || empty($_POST['description'])) {
+        if (empty($_POST['name']) || empty($_POST['address']) || empty($_POST['description']) || empty($_POST['price'])) {
             $_SESSION["name"] = $_POST['name'];
             $_SESSION["address"] = $_POST['address'];
             $_SESSION["description"] = $_POST['description'];
-            //empty name/address/description                   TODO error messages, time >=now and limit
+            $_SESSION["emptyInputs"] = "Fields 'name', 'address', 'description' and 'price' must be filled in";
             return new Redirect('/apartments/create');
         }
 
@@ -147,6 +162,7 @@ class ApartmentsController
             $availableTo = $_POST['available_to'];
         }
 
+        $price = (float) str_replace(",", ".", $_POST['price']);
 
         $activeId = $_SESSION["id"];
         Database::connection()
@@ -156,7 +172,8 @@ class ApartmentsController
                 'description' => $_POST['description'],
                 'available_from' => $availableFrom,
                 'available_to' => $availableTo,
-                'owner_id' => $activeId
+                'owner_id' => $activeId,
+                'price' => $price,
             ]);
         unset($_SESSION["name"]);
         unset($_SESSION["address"]);
@@ -186,7 +203,6 @@ class ApartmentsController
 
     public function edit(array $vars): View
     {
-
         $apartmentId = (int)$vars['id'];
         $apartmentQuery = Database::connection()
             ->createQueryBuilder()
@@ -204,7 +220,8 @@ class ApartmentsController
             $apartmentQuery['description'],
             $apartmentQuery['available_from'],
             $apartmentQuery['available_to'],
-            $apartmentQuery['owner_id']
+            $apartmentQuery['owner_id'],
+            $apartmentQuery['price']
         );
 
         $active = $_SESSION["fullName"];
@@ -230,12 +247,15 @@ class ApartmentsController
             ->fetchAssociative();
 
         $activeId = $_SESSION["id"];
+        $price = (float) str_replace(",", ".", $_POST['price']);
+
         if ($activeId == $apartmentQuery['owner_id']) {
             Database::connection()
                 ->update('apartments', [
                     'name' => $_POST['name'],
                     'address' => $_POST['address'],
                     'description' => $_POST['description'],
+                    'price' => $price,
                 ], ['id' => $apartmentId]
                 );
         }

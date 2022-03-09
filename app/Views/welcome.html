@@ -3,8 +3,13 @@
 {% block content %}
 {% if active != "" %}
 <br>
-<a class="menu" href="/apartments">Apartments</a>
-<br><br>
-<a class="menu" href="/users">All users</a>
+<ul class="nav nav-pills">
+    <li class="nav-item">
+        <a class="nav-link active" href="/apartments">Apartments</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="/users">All users</a>
+    </li>
+</ul>
 {% endif %}
 {% endblock %}

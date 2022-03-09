@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Database;
 use App\Models\Apartment;
+use App\Models\Reservation;
 use App\Redirect;
 use App\Views\View;
 use Carbon\Carbon;
@@ -11,6 +12,40 @@ use Carbon\CarbonPeriod;
 
 class ApartmentReservationsController
 {
+    public function show(array $vars): View
+    {
+        $apartmentId = (int)$vars['id'];
+        $active = $_SESSION["fullName"];
+        $activeId = $_SESSION["id"];
+
+        $apartmentReservationsQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartment_reservations')
+            ->where('apartment_id = ?')
+            ->setParameter(0, $apartmentId)
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        $reservations = [];
+        foreach ($apartmentReservationsQuery as $apartmentReservationData) {
+            $reservations [] = new Reservation(
+                $apartmentReservationData['id'],
+                $apartmentReservationData['apartment_id'],
+                $apartmentReservationData['user_id'],
+                $apartmentReservationData['reserved_from'],
+                $apartmentReservationData['reserved_to']
+            );
+        }
+
+        return new View("Reservations/show", [
+            'reservations' => $reservations,
+            'apartmentId' => $apartmentId,
+            'active' => $active,
+            'activeId' => $activeId
+        ]);
+    }
+
     public function reserve(array $vars): View
     {
         $apartmentId = (int)$vars['id'];
@@ -33,7 +68,8 @@ class ApartmentReservationsController
             $apartmentQuery['description'],
             $apartmentQuery['available_from'],
             $apartmentQuery['available_to'],
-            $apartmentQuery['owner_id']
+            $apartmentQuery['owner_id'],
+            $apartmentQuery['price']
         );
 
         $errorEmptyReserveFrom = $_SESSION["emptyReserveFrom"];
@@ -89,6 +125,7 @@ class ApartmentReservationsController
         } else {
             $invalidDates = "";
         }
+        $amountToPay = $_SESSION["amountToPay"];
 
         return new View("Reservations/reserve", [
             'active' => $active,
@@ -102,7 +139,8 @@ class ApartmentReservationsController
             'datesOverlap' => $datesOverlap,
             'invalidFromDate' => $invalidFromDate,
             'invalidToDate' => $invalidToDate,
-            'invalidDates' => $invalidDates
+            'invalidDates' => $invalidDates,
+            'amountToPay' => $amountToPay
         ]);
     }
 
@@ -113,6 +151,7 @@ class ApartmentReservationsController
         $apartmentId = (int)$vars['id'];
         $reserveFrom = $_POST['reserve_from'];
         $reserveTo = $_POST['reserve_to'];
+
         if (empty($reserveFrom) && !empty($reserveTo)) {
             $_SESSION["emptyReserveFrom"] = "Date is required";
             $_SESSION["inputReserveTo"] = $reserveTo;
@@ -191,6 +230,18 @@ class ApartmentReservationsController
                 'reserved_to' => $reserveTo
             ]);
         $_SESSION["reservationConfirmed"] = "true";
+
+        $apartmentQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartments')
+            ->where('id = ?')
+            ->setParameter(0, $apartmentId)
+            ->executeQuery()
+            ->fetchAssociative();
+
+        $daysReserved = Carbon::parse($reserveFrom)->diffInDays(Carbon::parse($reserveTo));
+        $_SESSION["amountToPay"] = (float) ($apartmentQuery['price'] * $daysReserved);
 
         return new Redirect("/apartments/$apartmentId/reserve");
     }

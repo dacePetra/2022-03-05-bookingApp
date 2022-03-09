@@ -14,9 +14,13 @@
     Description: {{ apartment.description }}
     <br>
 </p>
+<p>
+    <a href="/apartments/{{ apartment.id }}/show">Show all reservations</a>
+</p>
 <br>
 {% if reservationConfirmed == "true" %}
-<h3 style="color:red;">Reservation has been confirmed!</h3>
+<h5 style="color:red;">Reservation has been confirmed!</h5>
+<h6 style="color:red;">Amount to pay total: {{amountToPay }} EUR</h6>
 {% endif %}
 {% if datesOverlap != "" %}
 <h3 style="color:red;">{{ datesOverlap }}</h3>

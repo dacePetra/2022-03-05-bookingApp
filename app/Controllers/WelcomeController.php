@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Redirect;
 use App\Views\View;
 
 class WelcomeController
@@ -11,14 +12,9 @@ class WelcomeController
         return new View('opening');
     }
 
-    public function welcome(): View
+    public function welcome(): Redirect
     {
-        $active = $_SESSION["fullName"];
-        $activeId = $_SESSION["id"];
-        return new View('welcome', [
-            'active' => $active,
-            'id' => $activeId
-        ]);
+        return new Redirect('/apartments');
     }
 
 }

@@ -46,6 +46,9 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
     $r->addRoute('GET', '/apartments/{id:\d+}/reserve', [ApartmentReservationsController::class, 'reserve']);
     $r->addRoute('POST', '/apartments/{id:\d+}/confirm', [ApartmentReservationsController::class, 'confirm']);
+
+    $r->addRoute('GET', '/apartments/{id:\d+}/show', [ApartmentReservationsController::class, 'show']);
+
 });
 
 // Fetch method and URI from somewhere

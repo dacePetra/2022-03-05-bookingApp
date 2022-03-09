@@ -4,16 +4,20 @@
 {% if active != "" %}
 <br>
 {% block back %}
-    <a href="/users">Back</a>
+<ul class="nav nav-pills">
+    <li class="nav-item">
+        <a class="nav-link active" href="/users">Back</a>
+    </li>
+</ul>
 {% endblock %}
-<h2>
-    {{ user.name }} {{ user.surname }}
-</h2>
-<p>
-    E-mail: {{ user.email }}
-</p>
-<p>
-    Birthday: {{ user.birthday }}
-</p>
+<br><br>
+<div>
+    <h2>{{ user.name }} {{ user.surname }}</h2>
+</div>
+<br>
+<div>
+    <h4>E-mail: {{ user.email }}</h4>
+    <h4>Birthday: {{ user.birthday }}</h4>
+</div>
 {% endif %}
 {% endblock %}

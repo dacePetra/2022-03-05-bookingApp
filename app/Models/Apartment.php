@@ -11,8 +11,9 @@ class Apartment
     private string $availableFrom;
     private string $availableTo;
     private int $ownerId;
+    private float $price;
 
-    public function __construct(int $id, string $name, string $address, string $description, string $availableFrom, string $availableTo, int $ownerId)
+    public function __construct(int $id, string $name, string $address, string $description, string $availableFrom, string $availableTo, int $ownerId, float $price)
     {
         $this->id = $id;
         $this->name = $name;
@@ -21,6 +22,7 @@ class Apartment
         $this->availableFrom = $availableFrom;
         $this->availableTo = $availableTo;
         $this->ownerId = $ownerId;
+        $this->price = $price;
     }
 
     public function getId(): int
@@ -57,4 +59,10 @@ class Apartment
     {
         return $this->ownerId;
     }
+
+    public function getPrice(): float
+    {
+        return $this->price;
+    }
+
 }

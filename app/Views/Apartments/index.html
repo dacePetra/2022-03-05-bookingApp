@@ -7,14 +7,14 @@
 <a href="/welcome">Back</a>
 {% endblock %}
 <br><br>
-<h2>All apartments</h2>
+<h3>All apartments</h3>
 <p>
     (<a href="/apartments/create">Create</a>)
 </p>
 <br>
-<ul>
+<ul class="list-group">
     {% for apartment in apartments %}
-    <li>
+    <li class="list-group-item list-group-item-primary">
         <a class="nomargin" href="/apartments/{{ apartment.id }}">{{ apartment.name }}</a>
         <br>
         ({{ apartment.address }})

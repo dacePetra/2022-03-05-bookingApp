@@ -6,6 +6,7 @@ use App\Database;
 use App\Models\User;
 use App\Redirect;
 use App\Views\View;
+use Carbon\Carbon;
 
 class UsersController
 {
@@ -94,28 +95,115 @@ class UsersController
 
     public function signup(): View
     {
-        return new View('Users/signup');
+        $name =$_SESSION['name'];
+        $surname =$_SESSION['surname'];
+        $birthday =$_SESSION['birthday'];
+        $email =$_SESSION['email'];
+        unset($_SESSION["name"]);
+        unset($_SESSION["surname"]);
+        unset($_SESSION["birthday"]);
+        unset($_SESSION["email"]);
+
+        $invalidName = "";
+        if (isset($_SESSION['invalidName'])) {
+            $invalidName = $_SESSION['invalidName'];
+            unset($_SESSION['invalidName']);
+        }
+
+        $invalidSurname = "";
+        if (isset($_SESSION['invalidSurname'])) {
+            $invalidSurname = $_SESSION['invalidSurname'];
+            unset($_SESSION['invalidSurname']);
+        }
+
+        $invalidBirthday = "";
+        if (isset($_SESSION['invalidBirthday'])) {
+            $invalidBirthday = $_SESSION['invalidBirthday'];
+            unset($_SESSION['invalidBirthday']);
+        }
+
+        $invalidEmail = "";
+        if (isset($_SESSION['invalidEmail'])) {
+            $invalidEmail = $_SESSION['invalidEmail'];
+            unset($_SESSION['invalidEmail']);
+        }
+
+        $usedEmail = "";
+        if (isset($_SESSION['usedEmail'])) {
+            $usedEmail = $_SESSION['usedEmail'];
+            unset($_SESSION['usedEmail']);
+        }
+
+        $invalidPasswords = "";
+        if (isset($_SESSION['invalidPasswords'])) {
+            $invalidPasswords = $_SESSION['invalidPasswords'];
+            unset($_SESSION['invalidPasswords']);
+        }
+        $invalidPassword = "";
+        if (isset($_SESSION['invalidPassword'])) {
+            $invalidPassword = $_SESSION['invalidPassword'];
+            unset($_SESSION['invalidPassword']);
+        }
+
+        return new View('Users/signup', [
+            'invalidName' => $invalidName,
+            'invalidSurname' => $invalidSurname,
+            'invalidBirthday' => $invalidBirthday,
+            'invalidEmail' => $invalidEmail,
+            'usedEmail' => $usedEmail,
+            'invalidPasswords' => $invalidPasswords,
+            'invalidPassword' => $invalidPassword,
+            'name' => $name,
+            'surname' => $surname,
+            'birthday' => $birthday,
+            'email' => $email
+        ]);
     }
 
     public function register(array $vars): Redirect
     {
-        if (empty($_POST['name']) || empty($_POST['surname']) || empty($_POST['birthday']) || empty($_POST['email']) || empty($_POST['password']) || empty($_POST['password_repeat'])) {
+        //Validation: is name valid?
+        if (!preg_match("/^[a-zA-Z]*$/", $_POST['name'])) {
+            $_SESSION["invalidName"] = "Invalid name, please use only letters";
+            $_SESSION["name"] =$_POST['name'];
+            $_SESSION["surname"] =$_POST['surname'];
+            $_SESSION["birthday"] =$_POST['birthday'];
+            $_SESSION["email"] =$_POST['email'];
+            return new Redirect('/users/signup');
+        }
 
-            // Empty input
+        //Validation: is surname valid?
+        if (!preg_match("/^[a-zA-Z]*$/", $_POST['surname'])) {
+            $_SESSION["invalidSurname"] = "Invalid surname, please use only letters";
+            $_SESSION["name"] =$_POST['name'];
+            $_SESSION["surname"] =$_POST['surname'];
+            $_SESSION["birthday"] =$_POST['birthday'];
+            $_SESSION["email"] =$_POST['email'];
             return new Redirect('/users/signup');
         }
-        if (!preg_match("/^[a-zA-Z]*$/", $_POST['name']) || !preg_match("/^[a-zA-Z]*$/", $_POST['surname'])) {
-            // Invalid name or surname
+
+        //Validation: is date valid? (must be before today's date)
+        $birthday = Carbon::parse($_POST['birthday']);
+        $today = Carbon::parse(Carbon::now()->toDateString());
+        if($birthday->greaterThanOrEqualTo($today)){
+            $_SESSION["invalidBirthday"] = "Invalid date";
+            $_SESSION["name"] =$_POST['name'];
+            $_SESSION["surname"] =$_POST['surname'];
+            $_SESSION["birthday"] =$_POST['birthday'];
+            $_SESSION["email"] =$_POST['email'];
             return new Redirect('/users/signup');
         }
-        if ($_POST['password'] != $_POST['password_repeat']) {
-            // Passwords don't match
-            return new Redirect('/users/signup');
-        }
+
+        //Validation: is email format valid?
         if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-            // Invalid email
+            $_SESSION["invalidEmail"] = "Invalid email";
+            $_SESSION["name"] =$_POST['name'];
+            $_SESSION["surname"] =$_POST['surname'];
+            $_SESSION["birthday"] =$_POST['birthday'];
+            $_SESSION["email"] =$_POST['email'];
             return new Redirect('/users/signup');
         }
+        //Validation: is email already registered in database?
         $usersQuery = Database::connection()
             ->createQueryBuilder()
             ->select('email')
@@ -124,10 +212,38 @@ class UsersController
             ->executeQuery()
             ->fetchAssociative();
         if ($usersQuery != false) {
-            // Email taken
-            return new Redirect('/users/signup'); //TODO make error messages in users/signup page
+            $_SESSION["usedEmail"] = "E-mail is already registered in BookingApp database";
+            $_SESSION["name"] =$_POST['name'];
+            $_SESSION["surname"] =$_POST['surname'];
+            $_SESSION["birthday"] =$_POST['birthday'];
+            $_SESSION["email"] =$_POST['email'];
+            return new Redirect('/users/signup');
         }
+
+        //Validation: do passwords match?
+        if ($_POST['password'] != $_POST['password_repeat']) {
+            $_SESSION["invalidPasswords"] = "Passwords don't match";
+            $_SESSION["name"] =$_POST['name'];
+            $_SESSION["surname"] =$_POST['surname'];
+            $_SESSION["birthday"] =$_POST['birthday'];
+            $_SESSION["email"] =$_POST['email'];
+            return new Redirect('/users/signup');
+        }
+
+        //Validation: is password's length at least 8 symbols?
+        if (strlen($_POST['password'])<8) {
+            $_SESSION["invalidPassword"] = "Password must be at least 8 symbols";
+            $_SESSION["name"] =$_POST['name'];
+            $_SESSION["surname"] =$_POST['surname'];
+            $_SESSION["birthday"] =$_POST['birthday'];
+            $_SESSION["email"] =$_POST['email'];
+            return new Redirect('/users/signup');
+        }
+
+        // Before saving the password, it must be hashed
         $hashedPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+        // Saving user data in database (to 2 tables: users & user_profiles)
         Database::connection()
             ->insert('users', [
                 'email' => $_POST['email'],
@@ -150,40 +266,62 @@ class UsersController
                 'surname' => $_POST['surname'],
                 'birthday' => $_POST['birthday']
             ]);
+
         return new Redirect('/');
     }
 
     public function login(array $vars): View
     {
-        return new View('Users/login');
+
+        $email =$_SESSION['email'];
+        unset($_SESSION["email"]);
+
+        $unknownEmail = "";
+        if (isset($_SESSION['unknownEmail'])) {
+            $unknownEmail = $_SESSION['unknownEmail'];
+            unset($_SESSION['unknownEmail']);
+        }
+
+        $wrongPassword = "";
+        if (isset($_SESSION['wrongPassword'])) {
+            $wrongPassword = $_SESSION['wrongPassword'];
+            unset($_SESSION['wrongPassword']);
+        }
+
+        return new View('Users/login', [
+            'unknownEmail' => $unknownEmail,
+            'wrongPassword' => $wrongPassword,
+            'email' => $email
+        ]);
     }
 
     public function enter(array $vars): Redirect
     {
-        if (empty($_POST['input_email']) || empty($_POST['input_password'])) { //TODO error messages in login page
-            // Empty input
-            return new Redirect('/users/login');
-        }
+        // Getting user data to validate login inputs
         $usersQuery = Database::connection()
             ->createQueryBuilder()
             ->select('email, password, created_at, id')
             ->from('users')
             ->where('email = ?')
-            ->setParameter(0, $_POST['input_email'])
+            ->setParameter(0, $_POST['email'])
             ->executeQuery()
             ->fetchAssociative();
 
-
+        //Validation: is email registered in database?
         if ($usersQuery == false) {
-            // Email not registered
+            $_SESSION["unknownEmail"] = "This e-mail is not registered in BookingApp database";
+            $_SESSION["email"] =$_POST['email'];
             return new Redirect('/users/login');
         }
 
-        if (!password_verify($_POST['input_password'], $usersQuery['password'])) {
-            // Wrong password
+        //Validation: is password correct?
+        if (!password_verify($_POST['password'], $usersQuery['password'])) {
+            $_SESSION["wrongPassword"] = "Wrong password";
+            $_SESSION["email"] =$_POST['email'];
             return new Redirect('/users/login');
         }
 
+        // Getting user_profile data to save active user info
         $userProfilesQuery = Database::connection()
             ->createQueryBuilder()
             ->select('*')
@@ -193,8 +331,10 @@ class UsersController
             ->executeQuery()
             ->fetchAssociative();
 
+        // Saving active user data in session
         $_SESSION["fullName"] = $userProfilesQuery['name'] . " " . $userProfilesQuery['surname'];
         $_SESSION["id"] = $userProfilesQuery['user_id'];
+
         return new Redirect('/welcome');
     }
 
@@ -204,6 +344,5 @@ class UsersController
         session_destroy();
         return new View('Users/logout');
     }
-
 
 }

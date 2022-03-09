@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if active != "" %}
+<br>
+{% block back %}
+<a href="/apartments/{{ apartmentId }}/reserve">Back</a>
+{% endblock %}
+<br><br>
+<h2>Reservations</h2>
+<ul class="list-group">
+    {% for reservation in reservations %}
+    <li class="list-group-item list-group-item-success">
+        {{ reservation.reservedFrom }} - {{ reservation.reservedTo }}
+        <br>
+    </li>
+    {% endfor %}
+</ul>
+
+{% endif %}
+{% endblock %}
