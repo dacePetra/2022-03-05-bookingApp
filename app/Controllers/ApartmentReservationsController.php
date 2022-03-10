@@ -72,103 +72,117 @@ class ApartmentReservationsController
             $apartmentQuery['price']
         );
 
-        if (isset($_SESSION["inputReserveFrom"])) {
-            $inputReserveFrom = $_SESSION["inputReserveFrom"];
-            unset($_SESSION["inputReserveFrom"]);
-        }else{
-            $inputReserveFrom = "";
+        $emptyInputDates = "";
+        if (isset($_SESSION["emptyInputDates"])) {
+            $emptyInputDates = $_SESSION["emptyInputDates"];
+            unset($_SESSION["emptyInputDates"]);
         }
 
-        if (isset($_SESSION["inputReserveTo"])) {
-            $inputReserveTo = $_SESSION["inputReserveTo"];
-            unset($_SESSION["inputReserveTo"]);
-        }else{
-            $inputReserveTo = "";
-        }
-
-        if (isset($_SESSION["reservationConfirmed"])) {
-            $reservationConfirmed = $_SESSION["reservationConfirmed"];
-            unset($_SESSION["reservationConfirmed"]);
-        }else{
-            $reservationConfirmed = "false";
-        }
-
-        if (isset($_SESSION["overlap"])) {
-            $datesOverlap = $_SESSION["overlap"];
-            unset($_SESSION["overlap"]);
-        } else {
-            $datesOverlap = "";
-        }
-
+        $invalidFromDate = "";
         if (isset($_SESSION["invalidFromDate"])) {
             $invalidFromDate = $_SESSION["invalidFromDate"];
             unset($_SESSION["invalidFromDate"]);
-        } else {
-            $invalidFromDate = "";
         }
 
+        $invalidDates = "";
         if (isset($_SESSION["invalidDates"])) {
             $invalidDates = $_SESSION["invalidDates"];
             unset($_SESSION["invalidDates"]);
-        } else {
-            $invalidDates = "";
         }
+
+        $datesOverlap = "";
+        if (isset($_SESSION["overlap"])) {
+            $datesOverlap = $_SESSION["overlap"];
+            unset($_SESSION["overlap"]);
+        }
+
+        $reservationConfirmed = "false";
+        if (isset($_SESSION["reservationConfirmed"])) {
+            $reservationConfirmed = $_SESSION["reservationConfirmed"];
+            unset($_SESSION["reservationConfirmed"]);
+        }
+
         $amountToPay = $_SESSION["amountToPay"];
 
-        return new View("Reservations/reserve", [
-            'active' => $active,
-            'activeId' => $activeId,
-            'apartment' => $apartment,
-            'inputReserveFrom' => $inputReserveFrom,
-            'inputReserveTo' => $inputReserveTo,
-            'reservationConfirmed' => $reservationConfirmed,
-            'datesOverlap' => $datesOverlap,
-            'invalidFromDate' => $invalidFromDate,
-            'invalidToDate' => $invalidToDate,
-            'invalidDates' => $invalidDates,
-            'amountToPay' => $amountToPay
-        ]);
-    }
-
-    public function confirm(array $vars)
-    {
-        $active = $_SESSION["fullName"];
-        $activeId = $_SESSION["id"];
-        $apartmentId = (int)$vars['id'];
-        $reserveFrom = $_POST['reserve_from'];
-        $reserveTo = $_POST['reserve_to'];
-
-        // reservedFrom and reservedTo fields are "required", no need to check if they are empty
-
-
-        $dt = Carbon::now();
-        $carbonReserveFrom = Carbon::parse($reserveFrom);
-        $carbonReserveTo = Carbon::parse($reserveTo);
-        $carbonToday = Carbon::parse($dt->toDateString());
-
-        if(!$carbonReserveFrom->greaterThanOrEqualTo($carbonToday)){
-            $_SESSION["inputReserveFrom"] = $reserveFrom;
-            $_SESSION["inputReserveTo"] = $reserveTo;
-            $_SESSION["invalidFromDate"] = "Invalid date, 'check-in' date must be later or equal with today's date";
-            return new Redirect("/apartments/$apartmentId/reserve");
-        }
-
-        if(!$carbonReserveTo->greaterThan($carbonReserveFrom)){
-            $_SESSION["inputReserveFrom"] = $reserveFrom;
-            $_SESSION["inputReserveTo"] = $reserveTo;
-            $_SESSION["invalidDates"] = "Invalid dates, 'check-in' date must be before 'check-out' date";
-            return new Redirect("/apartments/$apartmentId/reserve");
-        }
-
+        // Setting disabled dates
         $apartmentReservationsQuery = Database::connection()
             ->createQueryBuilder()
             ->select('*')
             ->from('apartment_reservations')
             ->andWhere('apartment_id = :id')
             ->setParameter('id', $apartmentId)
-//            ->andWhere('reserved_from BETWEEN :from AND :to')
-//            ->setParameter('from', $reserveFrom)
-//            ->setParameter('to', $reserveTo)
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        $reservedDates = [];
+        foreach ($apartmentReservationsQuery as $reservationData) {
+            $reserveFrom = $reservationData['reserved_from'];
+            //One day from end must be subtracted, because if one guest checks out on date X, another one CAN check in on the same date.
+            $reserveTo = Carbon::parse($reservationData['reserved_to'])->subDay()->toDateString();
+            $reservedPeriod = Carbon::parse($reserveFrom)->daysUntil($reserveTo);;
+            foreach ($reservedPeriod as $reservedDate){
+                $reservedDates [] = $reservedDate->format('m-d-Y');
+            }
+        }
+        $today = Carbon::now()->format('m-d-Y');
+
+        return new View("Reservations/reserve", [
+            'active' => $active,
+            'activeId' => $activeId,
+            'apartment' => $apartment,
+            'emptyInputDates' => $emptyInputDates,
+            'reservationConfirmed' => $reservationConfirmed,
+            'datesOverlap' => $datesOverlap,
+            'invalidFromDate' => $invalidFromDate,
+            'invalidDates' => $invalidDates,
+            'amountToPay' => $amountToPay,
+            'reservedDates' => $reservedDates,
+            'today' => $today
+        ]);
+    }
+
+    public function confirm(array $vars): Redirect
+    {
+        $active = $_SESSION["fullName"];
+        $activeId = $_SESSION["id"];
+        $apartmentId = (int)$vars['id'];
+
+        // Converting POST date format to Y-m-d
+        $dateFrom = explode("/", $_POST['reserve_from']);
+        $reserveFrom = $dateFrom[2]."-".$dateFrom[0]."-".$dateFrom[1];
+        $dateTo = explode("/", $_POST['reserve_to']);
+        $reserveTo = $dateTo[2]."-".$dateTo[0]."-".$dateTo[1];
+
+        // Validation: are reserveFrom & reserveTo dates filled in?
+        if(empty($_POST['reserve_from']) || empty($_POST['reserve_to'])){
+            $_SESSION["emptyInputDates"] = "Both 'check-in' and 'check-out' dates must be filled in";
+            return new Redirect("/apartments/$apartmentId/reserve");
+        }
+
+        //Validation: is reserveFrom date grater than or equal to today's date?
+        $dt = Carbon::now();
+        $carbonReserveFrom = Carbon::parse($reserveFrom);
+        $carbonReserveTo = Carbon::parse($reserveTo);
+        $carbonToday = Carbon::parse($dt->toDateString());
+
+        if(!$carbonReserveFrom->greaterThanOrEqualTo($carbonToday)){
+            $_SESSION["invalidFromDate"] = "Invalid date, 'check-in' date must be greater or equal to today's date";
+            return new Redirect("/apartments/$apartmentId/reserve");
+        }
+
+        //Validation: is reserveTo date grater than reserveFrom date?
+        if(!$carbonReserveTo->greaterThan($carbonReserveFrom)){
+            $_SESSION["invalidDates"] = "Invalid dates, 'check-out' date must be greater than 'check-in' date";
+            return new Redirect("/apartments/$apartmentId/reserve");
+        }
+
+        //Validation: check in database if all days in potential reservation period are available?
+        $apartmentReservationsQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartment_reservations')
+            ->andWhere('apartment_id = :id')
+            ->setParameter('id', $apartmentId)
             ->executeQuery()
             ->fetchAllAssociative();
 

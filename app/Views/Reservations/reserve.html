@@ -18,45 +18,77 @@
         Price: {{ apartment.price }} EUR per night<br>
     </p>
 </div>
-<br>
 <!--<p>-->
 <!--    <a href="/apartments/{{ apartment.id }}/show">Show all reservations</a>-->
 <!--</p>-->
+
 {% if reservationConfirmed == "true" %}
 <div>
     <h5 style="color:red;">Reservation has been confirmed!</h5>
     <h6 style="color:red;">Total amount to pay: {{amountToPay }} EUR</h6>
 </div>
 {% endif %}
-<div>
-    {% if datesOverlap != "" %}
-    <h3 style="color:red;">{{ datesOverlap }}</h3>
-    {% endif %}
-    <form method="post" action="/apartments/{{ apartment.id }}/confirm">
-        <div>
-            <label for="reserve_from"><b>Check-in:</b></label><br>
-            {% if invalidFromDate != "" %}
-            <small style="color:red;">*{{ invalidFromDate }}</small>
-            <br>
-            {% endif %}
-            <input type="date" id="reserve_from" name="reserve_from" value="{{ inputReserveFrom }}" required/>
-        </div>
-        <br>
-        <div>
-            <label for="reserve_to"><b>Check-out:</b></label><br>
-            <input type="date" id="reserve_to" name="reserve_to" value="{{ inputReserveTo }}" required/>
-        </div>
-        <div>
-            {% if invalidDates != "" %}
-            <small style="color:red;">*{{ invalidDates }}</small>
-            <br>
-            {% endif %}
-        </div>
-        <br>
-        <div>
-            <button type="submit" class="btn btn-outline-dark" name="submit">Make a reservation</button>
-        </div>
-    </form>
-</div>
+
+{% if datesOverlap != "" %}
+<h5 style="color:red;">{{ datesOverlap }}</h5>
+<br>
 {% endif %}
+
+
+{% if emptyInputDates != "" %}
+<h5 style="color:red;">{{ emptyInputDates }}</h5>
+<br>
+{% endif %}
+
+{% if invalidDates != "" %}
+<h5 style="color:red;">{{ invalidDates }}</h5>
+<br>
+{% endif %}
+
+<form method="post" action="/apartments/{{ apartment.id }}/confirm">
+    <div>
+        <h5><strong>Check-in date:</strong></h5>
+        <div id="datepicker1"></div>
+        <input type="hidden" id="my_hidden_input1" name="reserve_from"/>
+    </div>
+    <br>
+    <div>
+        <h5><strong>Check-out date:</strong></h5>
+        <div id="datepicker2"></div>
+        <input type="hidden" id="my_hidden_input2" name="reserve_to"/>
+    </div>
+    <br>
+    <div>
+        <button type="submit" class="btn btn-outline-dark" name="submit">Make a reservation</button>
+    </div>
+</form>
+
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+    dates = {{ reservedDates | json_encode() | raw }}
+    startdate = {{ today | json_encode() | raw }}
+
+    $('#datepicker1').datepicker({
+        'startDate': startdate,
+        'datesDisabled': dates,
+        weekStart: 1
+    });
+    $('#datepicker1').on('changeDate', function () {
+        $('#my_hidden_input1').val(
+            $('#datepicker1').datepicker('getFormattedDate')
+        );
+    });
+    $('#datepicker2').datepicker({
+        'startDate': startdate,
+        'datesDisabled': dates,
+        weekStart: 1
+    });
+    $('#datepicker2').on('changeDate', function () {
+        $('#my_hidden_input2').val(
+            $('#datepicker2').datepicker('getFormattedDate')
+        );
+    });
+</script>
 {% endblock %}
