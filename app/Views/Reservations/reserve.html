@@ -4,63 +4,59 @@
 {% if active != "" %}
 <br>
 {% block back %}
-<a href="/apartments/{{ apartment.id }}">Back</a>
+<ul class="nav nav-pills">
+    <li class="nav-item">
+        <a class="nav-link active" href="/apartments/{{ apartment.id }}">Back</a>
+    </li>
+</ul>
 {% endblock %}
-<br><br>
-<h2>{{ apartment.name }}</h2>
-<p>
-    Address: {{ apartment.address }}
-    <br>
-    Description: {{ apartment.description }}
-    <br>
-</p>
-<p>
-    <a href="/apartments/{{ apartment.id }}/show">Show all reservations</a>
-</p>
 <br>
+<div>
+    <h2>{{ apartment.name }}</h2>
+    <p>
+        Address: {{ apartment.address }}<br>
+        Price: {{ apartment.price }} EUR per night<br>
+    </p>
+</div>
+<br>
+<!--<p>-->
+<!--    <a href="/apartments/{{ apartment.id }}/show">Show all reservations</a>-->
+<!--</p>-->
 {% if reservationConfirmed == "true" %}
-<h5 style="color:red;">Reservation has been confirmed!</h5>
-<h6 style="color:red;">Amount to pay total: {{amountToPay }} EUR</h6>
+<div>
+    <h5 style="color:red;">Reservation has been confirmed!</h5>
+    <h6 style="color:red;">Total amount to pay: {{amountToPay }} EUR</h6>
+</div>
 {% endif %}
-{% if datesOverlap != "" %}
-<h3 style="color:red;">{{ datesOverlap }}</h3>
-{% endif %}
-<p>
-<form method="post" action="/apartments/{{ apartment.id }}/confirm">
-    <div>
-        {% if invalidDates != "" %}
-        <small style="color:red;">*{{ invalidDates }}</small>
+<div>
+    {% if datesOverlap != "" %}
+    <h3 style="color:red;">{{ datesOverlap }}</h3>
+    {% endif %}
+    <form method="post" action="/apartments/{{ apartment.id }}/confirm">
+        <div>
+            <label for="reserve_from"><b>Check-in:</b></label><br>
+            {% if invalidFromDate != "" %}
+            <small style="color:red;">*{{ invalidFromDate }}</small>
+            <br>
+            {% endif %}
+            <input type="date" id="reserve_from" name="reserve_from" value="{{ inputReserveFrom }}" required/>
+        </div>
         <br>
-        {% endif %}
-        <label for="reserve_from">Reserve from:</label><br>
-        {% if errorEmptyReserveFrom != "" %}
-        <small style="color:red;">*{{ errorEmptyReserveFrom }}</small>
+        <div>
+            <label for="reserve_to"><b>Check-out:</b></label><br>
+            <input type="date" id="reserve_to" name="reserve_to" value="{{ inputReserveTo }}" required/>
+        </div>
+        <div>
+            {% if invalidDates != "" %}
+            <small style="color:red;">*{{ invalidDates }}</small>
+            <br>
+            {% endif %}
+        </div>
         <br>
-        {% endif %}
-        {% if invalidFromDate != "" %}
-        <small style="color:red;">*{{ invalidFromDate }}</small>
-        <br>
-        {% endif %}
-        <input type="date" id="reserve_from" name="reserve_from" value="{{ inputReserveFrom }}" />
-    </div>
-    <br>
-    <div>
-        <label for="reserve_to">Reserve to:</label><br>
-        {% if errorEmptyReserveTo != "" %}
-        <small style="color:red;">*{{ errorEmptyReserveTo }}</small>
-        <br>
-        {% endif %}
-        {% if invalidToDate != "" %}
-        <small style="color:red;">*{{ invalidToDate }}</small>
-        <br>
-        {% endif %}
-        <input type="date" id="reserve_to" name ="reserve_to" value="{{ inputReserveTo }}" />
-    </div>
-    <br>
-    <div>
-        <button type="submit">Make a reservation</button>
-    </div>
-</form>
-</p>
+        <div>
+            <button type="submit" class="btn btn-outline-dark" name="submit">Make a reservation</button>
+        </div>
+    </form>
+</div>
 {% endif %}
 {% endblock %}

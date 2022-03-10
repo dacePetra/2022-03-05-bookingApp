@@ -4,33 +4,41 @@
 {% if active != "" %}
 <br>
 {% block back %}
-<a href="/apartments/{{ apartment.id }}">Back</a>
+<ul class="nav nav-pills">
+    <li class="nav-item">
+        <a class="nav-link active" href="/apartments/{{ apartment.id }}">Back</a>
+    </li>
+</ul>
 {% endblock %}
-<h2>Edit apartment</h2>
-<form method="post" action="/apartments/{{ apartment.id }}">
-    <div>
-        <label for="name">Name:</label><br>
-        <input type="text" id="name" name="name" value="{{ apartment.name }}" />
-    </div>
-    <br>
-    <div>
-        <label for="address">Address:</label><br>
-        <input type="text" id="address" name="address" value="{{ apartment.address }}" />
-    </div>
-    <br>
-    <div>
-        <label for="description">Description:</label><br>
-        <textarea id="description" name="description">{{ apartment.description }}</textarea>
-    </div>
-    <br>
-    <div>
-        <label for="price">Price per night:</label><br>
-        <input type="text" id="price" name="price" value="{{ apartment.price }}" />
-    </div>
-    <br>
-    <div>
-        <button type="submit">Update</button>
-    </div>
-</form>
+<br>
+<div>
+    <h2>Edit apartment</h2>
+    <form method="post" action="/apartments/{{ apartment.id }}">
+        <div>
+            <label for="name">Name:</label><br>
+            <input type="text" id="name" name="name" value="{{ apartment.name }}" required><br>
+        </div>
+        <br>
+        <div>
+            <label for="address">Address:</label><br>
+            <input type="text" id="address" name="address" value="{{ apartment.address }}" required><br>
+        </div>
+        <br>
+        <div>
+            <label for="description">Description:</label><br>
+            <textarea id="description" name="description" required>{{ apartment.description }}</textarea><br>
+        </div>
+        <br>
+        <div>
+            <label for="price">Price per night, EUR:</label><br>
+            <input type="text" id="price" name="price" value="{{ apartment.price }}" required><br>
+        </div>
+        <br>
+        <div>
+            <button type="submit" class="btn btn-outline-dark" name="submit">Update</button>
+        </div>
+    </form>
+</div>
+
 {% endif %}
 {% endblock %}

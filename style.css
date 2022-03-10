@@ -7,19 +7,34 @@ body {
 ul {
     list-style-type: none;
 }
-
 li {
     margin-left: 12px;
 }
-
 .nomargin{
     margin-left: 0px;
 }
-
 .menu {
     font-size: x-large;
     color: #070760;
 }
 .nav-pills .nav-link.active {
     background-color: #212529;
+}
+.nav-pills .nav-link.white {
+    background-color: #6c757d;
+    color: white;
+}
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 50px;
+    justify-content: space-between;
+}
+.card-deck {
+    flex-basis: 30%;
+}
+.card-deck.one {
+    flex-basis: 100%;
+}
+.card {
 }

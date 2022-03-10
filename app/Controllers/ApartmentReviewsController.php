@@ -12,19 +12,15 @@ class ApartmentReviewsController
         $apartmentId = (int)$vars['id'];
         $active = $_SESSION["fullName"];
         $activeId = $_SESSION["id"];
-        $review = $_POST['review'];
 
-        if (empty($review)) {
-            $_SESSION["emptyReview"] = "Empty input";
-            return new Redirect("/apartments/".$apartmentId);
-        }
+        // Review field is "required", no need to check if review is empty
 
         Database::connection()
             ->insert('apartment_reviews', [
                 'apartment_id' => $apartmentId,
                 'author' => $active,
                 'author_id' => $activeId,
-                'text' => $review
+                'text' => $_POST['review']
             ]);
         return new Redirect('/apartments/' . $apartmentId);
     }

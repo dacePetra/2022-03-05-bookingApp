@@ -4,8 +4,6 @@ namespace App\Controllers;
 
 use App\Database;
 use App\Models\Apartment;
-use App\Models\Article;
-use App\Models\Comment;
 use App\Models\Review;
 use App\Redirect;
 use App\Views\View;
@@ -47,6 +45,7 @@ class ApartmentsController
     public function show(array $vars): View
     {
         $apartmentId = (int)$vars['id'];
+
         $apartmentQuery = Database::connection()
             ->createQueryBuilder()
             ->select('*')
@@ -91,12 +90,6 @@ class ApartmentsController
         }
         $numberOfReviews = count($reviews);
 
-        $emptyReview = "";
-        if (isset($_SESSION['emptyReview'])) {
-            $emptyReview = $_SESSION['emptyReview'];
-            unset($_SESSION['emptyReview']);
-        }
-
         $active = $_SESSION["fullName"];
         $activeId = (int)$_SESSION["id"];
         return new View('Apartments/show', [
@@ -104,8 +97,7 @@ class ApartmentsController
             'reviews' => $reviews,
             'numberOfReviews' => $numberOfReviews,
             'active' => $active,
-            'activeId' => $activeId,
-            'emptyReview' => $emptyReview
+            'activeId' => $activeId
         ]);
     }
 
@@ -121,11 +113,10 @@ class ApartmentsController
         $active = $_SESSION["fullName"];
         $activeId = $_SESSION["id"];
 
+        $emptyInputs = "";
         if (isset($_SESSION["emptyInputs"])) {
             $emptyInputs = $_SESSION["emptyInputs"];
             unset($_SESSION["emptyInputs"]);
-        } else {
-            $emptyInputs = "";
         }
 
         return new View('Apartments/create', [

@@ -72,11 +72,6 @@ class ApartmentReservationsController
             $apartmentQuery['price']
         );
 
-        $errorEmptyReserveFrom = $_SESSION["emptyReserveFrom"];
-        $errorEmptyReserveTo = $_SESSION["emptyReserveTo"];
-        unset($_SESSION["emptyReserveFrom"]);
-        unset($_SESSION["emptyReserveTo"]);
-
         if (isset($_SESSION["inputReserveFrom"])) {
             $inputReserveFrom = $_SESSION["inputReserveFrom"];
             unset($_SESSION["inputReserveFrom"]);
@@ -112,13 +107,6 @@ class ApartmentReservationsController
             $invalidFromDate = "";
         }
 
-        if (isset($_SESSION["invalidToDate"])) {
-            $invalidToDate = $_SESSION["invalidToDate"];
-            unset($_SESSION["invalidToDate"]);
-        }else {
-            $invalidToDate = "";
-        }
-
         if (isset($_SESSION["invalidDates"])) {
             $invalidDates = $_SESSION["invalidDates"];
             unset($_SESSION["invalidDates"]);
@@ -131,8 +119,6 @@ class ApartmentReservationsController
             'active' => $active,
             'activeId' => $activeId,
             'apartment' => $apartment,
-            'errorEmptyReserveFrom' => $errorEmptyReserveFrom,
-            'errorEmptyReserveTo' => $errorEmptyReserveTo,
             'inputReserveFrom' => $inputReserveFrom,
             'inputReserveTo' => $inputReserveTo,
             'reservationConfirmed' => $reservationConfirmed,
@@ -152,21 +138,8 @@ class ApartmentReservationsController
         $reserveFrom = $_POST['reserve_from'];
         $reserveTo = $_POST['reserve_to'];
 
-        if (empty($reserveFrom) && !empty($reserveTo)) {
-            $_SESSION["emptyReserveFrom"] = "Date is required";
-            $_SESSION["inputReserveTo"] = $reserveTo;
-            return new Redirect("/apartments/$apartmentId/reserve");
-        }
-        if (empty($reserveTo) && !empty($reserveFrom)) {
-            $_SESSION["emptyReserveTo"] = "Date is required";
-            $_SESSION["inputReserveFrom"] = $reserveFrom;
-            return new Redirect("/apartments/$apartmentId/reserve");
-        }
-        if (empty($reserveTo) && empty($reserveFrom)) {
-            $_SESSION["emptyReserveFrom"] = "Date is required";
-            $_SESSION["emptyReserveTo"] = "Date is required";
-            return new Redirect("/apartments/$apartmentId/reserve");
-        }
+        // reservedFrom and reservedTo fields are "required", no need to check if they are empty
+
 
         $dt = Carbon::now();
         $carbonReserveFrom = Carbon::parse($reserveFrom);
@@ -176,21 +149,14 @@ class ApartmentReservationsController
         if(!$carbonReserveFrom->greaterThanOrEqualTo($carbonToday)){
             $_SESSION["inputReserveFrom"] = $reserveFrom;
             $_SESSION["inputReserveTo"] = $reserveTo;
-            $_SESSION["invalidFromDate"] = "Invalid date, 'from' date must be larger or equal with today's date";
-            return new Redirect("/apartments/$apartmentId/reserve");
-        }
-
-        if(!$carbonReserveTo->greaterThan($carbonToday)){
-            $_SESSION["inputReserveFrom"] = $reserveFrom;
-            $_SESSION["inputReserveTo"] = $reserveTo;
-            $_SESSION["invalidToDate"] = "Invalid date, 'to' date must be larger than today's date";
+            $_SESSION["invalidFromDate"] = "Invalid date, 'check-in' date must be later or equal with today's date";
             return new Redirect("/apartments/$apartmentId/reserve");
         }
 
         if(!$carbonReserveTo->greaterThan($carbonReserveFrom)){
             $_SESSION["inputReserveFrom"] = $reserveFrom;
             $_SESSION["inputReserveTo"] = $reserveTo;
-            $_SESSION["invalidDates"] = "Invalid dates, 'to' date must be larger than 'from' date";
+            $_SESSION["invalidDates"] = "Invalid dates, 'check-in' date must be before 'check-out' date";
             return new Redirect("/apartments/$apartmentId/reserve");
         }
 
