@@ -22,7 +22,6 @@ class ApartmentReviewsController
         }
         if ($_POST['star1'] == "1" && !isset($_POST['star2']) && !isset($_POST['star3']) && !isset($_POST['star4']) && !isset($_POST['star5'])) {
             $rating = (int)$_POST['star1'];
-
         }
         if (!isset($_POST['star1']) && $_POST['star2'] == "2" && !isset($_POST['star3']) && !isset($_POST['star4']) && !isset($_POST['star5'])) {
             $rating = (int)$_POST['star2'];

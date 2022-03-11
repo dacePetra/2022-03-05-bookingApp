@@ -115,6 +115,7 @@ class ApartmentsController
             'reviews' => $reviews,
             'numberOfReviews' => $numberOfReviews,
             'review' => $inputReview,
+            'inputReview' => $inputReview,
             'emptyRating' => $emptyRating,
             'errorInRating' => $errorInRating,
             'active' => $active,

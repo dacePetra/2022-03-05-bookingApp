@@ -230,7 +230,7 @@ class ApartmentReservationsController
 
         //Validation: is reserveTo date grater than reserveFrom date?
         if(!$carbonReserveTo->greaterThan($carbonReserveFrom)){
-            $_SESSION["invalidDates"] = "Invalid dates, 'check-out' date must be greater than 'check-in' date";
+            $_SESSION["invalidDates"] = "Invalid dates, 'check-in' date must be before 'check-out' date";
             return new Redirect("/apartments/$apartmentId/reserve");
         }
 
