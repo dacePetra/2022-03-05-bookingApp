@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if active != "" %}
+<br>
+{% block back %}
+<ul class="nav nav-pills">
+    <li class="nav-item">
+        <a class="nav-link active" href="/apartments">Back</a>
+    </li>
+</ul>
+{% endblock %}
+<br>
+
+<div class="flex-container">
+    {% for apartment in apartments %}
+    <div class="card-deck">
+        <div class="card text-white bg-dark mb-3">
+                <div class="card-body">
+                    <a id="white" href="/apartments/{{ apartment.id }}">{{ apartment.name }}</a>
+                <p class="card-text">
+                    {{ apartment.description }}
+                    <br>
+                    {{ apartment.price }} EUR per night
+                </p>
+                <p class="card-text">
+                <ul class="nav nav-pills">
+                    {% if apartment.ownerId == activeId %}
+                    <li class="nav-item">
+                        <a class="nav-link white" href="/apartments/{{ apartment.id }}/edit">Edit</a>
+                    </li>
+                    <br>
+                    <li class="nav-item">
+                        <form method="post" action="/apartments/{{ apartment.id }}/delete">
+                            <button type="submit" class="btn btn-secondary"
+                                    onclick="return confirm('Are you sure you want to delete this apartment?')">Delete
+                            </button>
+                        </form>
+                    </li>
+                    <br>
+                    <li class="nav-item">
+                        <a class="nav-link white" href="/reservations/{{ apartment.id }}/show">Reservations</a>
+                    </li>
+                    {% endif %}
+                </ul>
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

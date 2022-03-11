@@ -30,6 +30,9 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/users', [UsersController::class, 'index']);
     $r->addRoute('GET', '/users/{id:\d+}', [UsersController::class, 'show']);
 
+    $r->addRoute('GET', '/users/{id:\d+}/reservations', [UsersController::class, 'reservations']);
+    $r->addRoute('GET', '/users/{id:\d+}/apartments', [UsersController::class, 'apartments']);
+
     $r->addRoute('GET', '/apartments', [ApartmentsController::class, 'index']);
     $r->addRoute('GET', '/apartments/{id:\d+}', [ApartmentsController::class, 'show']);
 
@@ -47,7 +50,8 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/apartments/{id:\d+}/reserve', [ApartmentReservationsController::class, 'reserve']);
     $r->addRoute('POST', '/apartments/{id:\d+}/confirm', [ApartmentReservationsController::class, 'confirm']);
 
-    $r->addRoute('GET', '/apartments/{id:\d+}/show', [ApartmentReservationsController::class, 'show']);
+    $r->addRoute('GET', '/reservations/{id:\d+}/show', [ApartmentReservationsController::class, 'show']);
+    $r->addRoute('POST', '/reservations/{id:\d+}/delete', [ApartmentReservationsController::class, 'delete']);
 
 });
 

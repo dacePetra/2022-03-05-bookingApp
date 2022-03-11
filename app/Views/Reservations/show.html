@@ -4,18 +4,56 @@
 {% if active != "" %}
 <br>
 {% block back %}
-<a href="/apartments/{{ apartmentId }}/reserve">Back</a>
-{% endblock %}
-<br><br>
-<h2>Reservations</h2>
-<ul class="list-group">
-    {% for reservation in reservations %}
-    <li class="list-group-item list-group-item-success">
-        {{ reservation.reservedFrom }} - {{ reservation.reservedTo }}
-        <br>
+<ul class="nav nav-pills">
+    <li class="nav-item">
+        <a class="nav-link active" href="/users/{{ activeId }}/apartments">Back</a>
     </li>
-    {% endfor %}
 </ul>
+{% endblock %}
+<br>
+<div>
+<h2>All reservations for apartment: {{ apartment.name }}</h2>
+    <div class="container mt-3">
+        <table class="table table-dark table-striped">
+            <thead>
+            <tr>
+                <th>Guest</th>
+                <th>E-mail</th>
+                <th>Check-in date</th>
+                <th>Check-out date</th>
+                <th>Delete reservation</th>
+            </tr>
+            </thead>
+            <tbody>
 
+            {% for reservation in reservations %}
+            {% for guest in guests %}
+            <tr>
+                {% if reservation.userId == guest.id %}
+                <td>{{ guest.name }} {{ guest.surname }}</td>
+                <td>{{ guest.email }}</td>
+                <td>{{ reservation.reservedFrom }}</td>
+                <td>{{ reservation.reservedTo }}</td>
+                <td>
+                {% if activeId == apartment.ownerId %}
+                <ul class="nav nav-pills">
+                    <li class="nav-item">
+                        <form method="post" action="/reservations/{{ reservation.id }}/delete">
+                            <button type="submit" class="btn btn-secondary btn-sm"
+                                    onclick="return confirm('Are you sure you want to delete this reservation?')">Delete
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+                {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endif %}
 {% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% if active != "" %}
+<br>
+{% block back %}
+<ul class="nav nav-pills">
+    <li class="nav-item">
+        <a class="nav-link active" href="/apartments">Back</a>
+    </li>
+</ul>
+{% endblock %}
+<br>
+<div>
+    <h2>My reservations</h2>
+    <div class="container mt-3">
+        <table class="table table-dark table-striped">
+            <thead>
+            <tr>
+                <th>Apartment name</th>
+                <th>Address</th>
+                <th>Check-in date</th>
+                <th>Check-out date</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for reservation in reservations %}
+            {% for apartment in apartments %}
+            <tr>
+                {% if reservation.apartmentId == apartment.id %}
+                <td>{{ apartment.name }}</td>
+                <td>{{ apartment.address }}</td>
+                <td>{{ reservation.reservedFrom }}</td>
+                <td>{{ reservation.reservedTo }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

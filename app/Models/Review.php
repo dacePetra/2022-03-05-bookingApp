@@ -9,19 +9,21 @@ class Review
     private string $author;
     private int $authorId;
     private string $text;
+    private int $rating;
     private ?int $id = null;
 
-    public function __construct(int $apartmentId, string $createdAt, string $author, int $authorId, string $text, ?int $id)
+    public function __construct(int $apartmentId, string $createdAt, string $author, int $authorId, string $text, int $rating, ?int $id)
     {
         $this->apartmentId = $apartmentId;
         $this->createdAt = $createdAt;
         $this->author = $author;
         $this->authorId = $authorId;
         $this->text = $text;
+        $this->rating = $rating;
         $this->id = $id;
     }
 
-    public function getArticleId(): int
+    public function getApartmentId(): int
     {
         return $this->apartmentId;
     }
@@ -44,6 +46,11 @@ class Review
     public function getText(): string
     {
         return $this->text;
+    }
+
+    public function getRating(): int
+    {
+        return $this->rating;
     }
 
     public function getId(): ?int

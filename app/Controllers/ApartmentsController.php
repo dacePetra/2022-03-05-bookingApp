@@ -30,7 +30,8 @@ class ApartmentsController
                 $apartmentData['available_from'],
                 $apartmentData['available_to'],
                 $apartmentData['owner_id'],
-                (float) $apartmentData['price']
+                $apartmentData['price'],
+                $apartmentData['rating']
             );
         }
         $active = $_SESSION["fullName"];
@@ -63,7 +64,8 @@ class ApartmentsController
             $apartmentQuery['available_from'],
             $apartmentQuery['available_to'],
             $apartmentQuery['owner_id'],
-            $apartmentQuery['price']
+            $apartmentQuery['price'],
+            $apartmentQuery['rating']
         );
 
         $reviewsQuery = Database::connection()
@@ -76,7 +78,6 @@ class ApartmentsController
             ->executeQuery()
             ->fetchAllAssociative();
 
-        //check if not null, then create object
         $reviews = [];
         foreach ($reviewsQuery as $reviewData) {
             $reviews [] = new Review(
@@ -85,10 +86,27 @@ class ApartmentsController
                 $reviewData['author'],
                 $reviewData['author_id'],
                 $reviewData['text'],
+                $reviewData['rating'],
                 $reviewData['id']
             );
         }
+
         $numberOfReviews = count($reviews);
+
+        $inputReview = $_SESSION["review"];
+        unset($_SESSION["review"]);
+
+        $emptyRating = "";
+        if (isset($_SESSION['emptyRating'])) {
+            $emptyRating = $_SESSION['emptyRating'];
+            unset($_SESSION["emptyRating"]);
+        }
+
+        $errorInRating = "";
+        if (isset($_SESSION['errorInRating'])) {
+            $errorInRating = $_SESSION['errorInRating'];
+            unset($_SESSION["errorInRating"]);
+        }
 
         $active = $_SESSION["fullName"];
         $activeId = (int)$_SESSION["id"];
@@ -96,6 +114,9 @@ class ApartmentsController
             'apartment' => $apartment,
             'reviews' => $reviews,
             'numberOfReviews' => $numberOfReviews,
+            'review' => $inputReview,
+            'emptyRating' => $emptyRating,
+            'errorInRating' => $errorInRating,
             'active' => $active,
             'activeId' => $activeId
         ]);
@@ -103,54 +124,64 @@ class ApartmentsController
 
     public function create(array $vars): View
     {
+        $active = $_SESSION["fullName"];
+        $activeId = $_SESSION["id"];
+
         $name = $_SESSION["name"];
         $address = $_SESSION["address"];
         $description = $_SESSION["description"];
         unset($_SESSION["name"]);
-        unset($_SESSION["surname"]);
+        unset($_SESSION["address"]);
         unset($_SESSION["description"]);
 
-        $active = $_SESSION["fullName"];
-        $activeId = $_SESSION["id"];
+        $invalidFromDate = "";
+        if (isset($_SESSION["invalidFromDate"])) {
+            $invalidFromDate = $_SESSION["invalidFromDate"];
+            unset($_SESSION["invalidFromDate"]);
+        }
 
-        $emptyInputs = "";
-        if (isset($_SESSION["emptyInputs"])) {
-            $emptyInputs = $_SESSION["emptyInputs"];
-            unset($_SESSION["emptyInputs"]);
+        $invalidDates = "";
+        if (isset($_SESSION["invalidDates"])) {
+            $invalidDates = $_SESSION["invalidDates"];
+            unset($_SESSION["invalidDates"]);
         }
 
         return new View('Apartments/create', [
             'active' => $active,
             'id' => $activeId,
+            'invalidFromDate' => $invalidFromDate,
+            'invalidDates' => $invalidDates,
             'name' => $name,
             'address' => $address,
-            'description' => $description,
-            'emptyInputs' => $emptyInputs
+            'description' => $description
         ]);
     }
 
     public function store(): Redirect
     {
-        if (empty($_POST['name']) || empty($_POST['address']) || empty($_POST['description']) || empty($_POST['price'])) {
+        $availableFrom = $_POST['available_from'];
+        $availableTo = $_POST['available_to'];
+
+        //Validation: is availableFrom date grater than or equal to today's date?
+        $carbonAvailableFrom = Carbon::parse($availableFrom);
+        $carbonAvailableTo = Carbon::parse($availableTo);
+        $carbonToday = Carbon::parse(Carbon::now()->toDateString());
+
+        if($carbonAvailableFrom->lessThan($carbonToday)){
+            $_SESSION["invalidFromDate"] = "Invalid date, 'Available from' date must be after or equal to today's date";
             $_SESSION["name"] = $_POST['name'];
             $_SESSION["address"] = $_POST['address'];
             $_SESSION["description"] = $_POST['description'];
-            $_SESSION["emptyInputs"] = "Fields 'name', 'address', 'description' and 'price' must be filled in";
-            return new Redirect('/apartments/create');
+            return new Redirect("/apartments/create");
         }
 
-        $dt = Carbon::now();
-
-        if (empty($_POST['available_from'])) {
-            $availableFrom = $dt->toDateString();
-        } else {
-            $availableFrom = $_POST['available_from'];
-        }
-        $endOfYear = $dt->endOfYear()->toDateString();
-        if (empty($_POST['available_to'])) {
-            $availableTo = $endOfYear;
-        } else {
-            $availableTo = $_POST['available_to'];
+        //Validation: is availableFrom date before availableTo date?
+        if($carbonAvailableFrom->greaterThan($carbonAvailableTo)){
+            $_SESSION["invalidDates"] = "Invalid dates, 'Available from' date must be before 'Available to' date";
+            $_SESSION["name"] = $_POST['name'];
+            $_SESSION["address"] = $_POST['address'];
+            $_SESSION["description"] = $_POST['description'];
+            return new Redirect("/apartments/create");
         }
 
         $price = (float) str_replace(",", ".", $_POST['price']);
@@ -165,6 +196,7 @@ class ApartmentsController
                 'available_to' => $availableTo,
                 'owner_id' => $activeId,
                 'price' => $price,
+                'rating' => 0,
             ]);
         unset($_SESSION["name"]);
         unset($_SESSION["address"]);
@@ -188,6 +220,10 @@ class ApartmentsController
         if ($activeId == $apartmentQuery['owner_id']) {
             Database::connection()
                 ->delete('apartments', ['id' => $apartmentId]);
+            Database::connection()
+                ->delete('apartment_reviews', ['apartment_id' => $apartmentId]);
+            Database::connection()
+                ->delete('apartment_reservations', ['apartment_id' => $apartmentId]);
         }
         return new Redirect('/apartments');
     }
@@ -212,7 +248,8 @@ class ApartmentsController
             $apartmentQuery['available_from'],
             $apartmentQuery['available_to'],
             $apartmentQuery['owner_id'],
-            $apartmentQuery['price']
+            $apartmentQuery['price'],
+            $apartmentQuery['rating']
         );
 
         $active = $_SESSION["fullName"];

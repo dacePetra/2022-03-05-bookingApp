@@ -3,6 +3,8 @@
 namespace App\Controllers;
 
 use App\Database;
+use App\Models\Apartment;
+use App\Models\Reservation;
 use App\Models\User;
 use App\Redirect;
 use App\Views\View;
@@ -272,7 +274,6 @@ class UsersController
 
     public function login(array $vars): View
     {
-
         $email =$_SESSION['email'];
         unset($_SESSION["email"]);
 
@@ -343,6 +344,103 @@ class UsersController
         session_unset();
         session_destroy();
         return new View('Users/logout');
+    }
+
+    public function reservations(array $vars): View
+    {
+        $active = $_SESSION["fullName"];
+        $activeId = $_SESSION["id"];
+
+        $apartmentReservationsQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartment_reservations')
+            ->where('user_id = ?')
+            ->setParameter(0, $activeId)
+            ->orderBy('reserved_from', 'asc')
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        $reservations = [];
+        $apartmentIds = [];
+        foreach ($apartmentReservationsQuery as $apartmentReservationData) {
+            $reservations [] = new Reservation(
+                $apartmentReservationData['id'],
+                $apartmentReservationData['apartment_id'],
+                $apartmentReservationData['user_id'],
+                $apartmentReservationData['reserved_from'],
+                $apartmentReservationData['reserved_to']
+            );
+            $apartmentIds [] = $apartmentReservationData['apartment_id'];
+        }
+        $uniqueApartmentIds = array_unique($apartmentIds);
+        $apartments =[];
+        foreach ($uniqueApartmentIds as $apartmentId){
+            $apartmentQuery = Database::connection()
+                ->createQueryBuilder()
+                ->select('*')
+                ->from('apartments')
+                ->where('id = ?')
+                ->setParameter(0, $apartmentId)
+                ->executeQuery()
+                ->fetchAssociative();
+
+            $apartments [] = new Apartment(
+                $apartmentQuery['id'],
+                $apartmentQuery['name'],
+                $apartmentQuery['address'],
+                $apartmentQuery['description'],
+                $apartmentQuery['available_from'],
+                $apartmentQuery['available_to'],
+                $apartmentQuery['owner_id'],
+                $apartmentQuery['price'],
+                $apartmentQuery['rating']
+            );
+        }
+
+        return new View("Users/reservations", [
+            'reservations' => $reservations,
+            'apartments' => $apartments,
+            'active' => $active,
+            'activeId' => $activeId
+        ]);
+    }
+
+    public function apartments(array $vars): View
+    {
+        $active = $_SESSION["fullName"];
+        $activeId = $_SESSION["id"];
+
+        $apartmentsQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartments')
+            ->where('owner_id = ?')
+            ->setParameter(0, $activeId)
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        $apartments = [];
+        foreach ($apartmentsQuery as $apartmentData) {
+            $apartments [] = new Apartment(
+                $apartmentData['id'],
+                $apartmentData['name'],
+                $apartmentData['address'],
+                $apartmentData['description'],
+                $apartmentData['available_from'],
+                $apartmentData['available_to'],
+                $apartmentData['owner_id'],
+                $apartmentData['price'],
+                $apartmentData['rating']
+            );
+
+        }
+
+        return new View("Users/apartments", [
+            'apartments' => $apartments,
+            'active' => $active,
+            'activeId' => $activeId
+        ]);
     }
 
 }

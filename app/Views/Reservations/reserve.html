@@ -19,7 +19,7 @@
     </p>
 </div>
 <!--<p>-->
-<!--    <a href="/apartments/{{ apartment.id }}/show">Show all reservations</a>-->
+<!--    <a href="/reservations/{{ apartment.id }}/show">Show all reservations</a>-->
 <!--</p>-->
 
 {% if reservationConfirmed == "true" %}
@@ -33,7 +33,6 @@
 <h5 style="color:red;">{{ datesOverlap }}</h5>
 <br>
 {% endif %}
-
 
 {% if emptyInputDates != "" %}
 <h5 style="color:red;">{{ emptyInputDates }}</h5>

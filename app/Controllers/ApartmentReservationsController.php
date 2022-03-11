@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Database;
 use App\Models\Apartment;
 use App\Models\Reservation;
+use App\Models\User;
 use App\Redirect;
 use App\Views\View;
 use Carbon\Carbon;
@@ -13,40 +14,6 @@ use Carbon\CarbonPeriod;
 class ApartmentReservationsController
 {
     public function show(array $vars): View
-    {
-        $apartmentId = (int)$vars['id'];
-        $active = $_SESSION["fullName"];
-        $activeId = $_SESSION["id"];
-
-        $apartmentReservationsQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('*')
-            ->from('apartment_reservations')
-            ->where('apartment_id = ?')
-            ->setParameter(0, $apartmentId)
-            ->executeQuery()
-            ->fetchAllAssociative();
-
-        $reservations = [];
-        foreach ($apartmentReservationsQuery as $apartmentReservationData) {
-            $reservations [] = new Reservation(
-                $apartmentReservationData['id'],
-                $apartmentReservationData['apartment_id'],
-                $apartmentReservationData['user_id'],
-                $apartmentReservationData['reserved_from'],
-                $apartmentReservationData['reserved_to']
-            );
-        }
-
-        return new View("Reservations/show", [
-            'reservations' => $reservations,
-            'apartmentId' => $apartmentId,
-            'active' => $active,
-            'activeId' => $activeId
-        ]);
-    }
-
-    public function reserve(array $vars): View
     {
         $apartmentId = (int)$vars['id'];
         $active = $_SESSION["fullName"];
@@ -69,7 +36,98 @@ class ApartmentReservationsController
             $apartmentQuery['available_from'],
             $apartmentQuery['available_to'],
             $apartmentQuery['owner_id'],
-            $apartmentQuery['price']
+            $apartmentQuery['price'],
+            $apartmentQuery['rating']
+        );
+
+        $apartmentReservationsQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartment_reservations')
+            ->where('apartment_id = ?')
+            ->setParameter(0, $apartmentId)
+            ->orderBy('reserved_from', 'asc')
+            ->executeQuery()
+            ->fetchAllAssociative();
+
+        $reservations = [];
+        $guestIds = [];
+        foreach ($apartmentReservationsQuery as $apartmentReservationData) {
+            $reservations [] = new Reservation(
+                $apartmentReservationData['id'],
+                $apartmentReservationData['apartment_id'],
+                $apartmentReservationData['user_id'],
+                $apartmentReservationData['reserved_from'],
+                $apartmentReservationData['reserved_to']
+            );
+            $guestIds [] = $apartmentReservationData['user_id'];
+        }
+        $uniqueGuestIds = array_unique($guestIds);
+        $guests =[];
+        foreach ($uniqueGuestIds as $guestId){
+            $userProfileQuery = Database::connection()
+                ->createQueryBuilder()
+                ->select('*')
+                ->from('user_profiles')
+                ->where('user_id = ?')
+                ->setParameter(0, $guestId)
+                ->executeQuery()
+                ->fetchAssociative();
+
+            $usersQuery = Database::connection()
+                ->createQueryBuilder()
+                ->select('*')
+                ->from('users')
+                ->where('id = ?')
+                ->setParameter(0, $guestId)
+                ->executeQuery()
+                ->fetchAssociative();
+
+            $guests [] = new User(
+                $userProfileQuery['name'],
+                $userProfileQuery['surname'],
+                $userProfileQuery['birthday'],
+                $usersQuery['email'],
+                $usersQuery['password'],
+                $usersQuery['created_at'],
+                $usersQuery['id']
+            );
+        }
+
+        return new View("Reservations/show", [
+            'reservations' => $reservations,
+            'guests' => $guests,
+            'apartment' => $apartment,
+            'active' => $active,
+            'activeId' => $activeId
+        ]);
+    }
+
+        public function reserve(array $vars): View
+    {
+        $apartmentId = (int)$vars['id'];
+        $active = $_SESSION["fullName"];
+        $activeId = $_SESSION["id"];
+
+        $apartmentQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartments')
+            ->where('id = ?')
+            ->setParameter(0, $apartmentId)
+            ->executeQuery()
+            ->fetchAssociative();
+
+        $apartment = new Apartment(
+            $apartmentQuery['id'],
+            $apartmentQuery['name'],
+            $apartmentQuery['address'],
+            $apartmentQuery['description'],
+            $apartmentQuery['available_from'],
+            $apartmentQuery['available_to'],
+            $apartmentQuery['owner_id'],
+            $apartmentQuery['price'],
+            $apartmentQuery['rating']
         );
 
         $emptyInputDates = "";
@@ -224,6 +282,39 @@ class ApartmentReservationsController
         $_SESSION["amountToPay"] = (float) ($apartmentQuery['price'] * $daysReserved);
 
         return new Redirect("/apartments/$apartmentId/reserve");
+    }
+
+    public function delete (array $vars): Redirect
+    {
+        $reservationId = (int)$vars['id'];
+        $activeId = $_SESSION["id"];
+
+        $reservationQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartment_reservations')
+            ->where('id = ?')
+            ->setParameter(0, $reservationId)
+            ->executeQuery()
+            ->fetchAssociative();
+
+        $apartmentId = $reservationQuery['apartment_id'];
+
+        $reservationQuery = Database::connection()
+            ->createQueryBuilder()
+            ->select('*')
+            ->from('apartments')
+            ->where('id = ?')
+            ->setParameter(0, $apartmentId)
+            ->executeQuery()
+            ->fetchAssociative();
+
+        $ownerId = $reservationQuery['owner_id'];
+        if ($activeId == $ownerId) {
+            Database::connection()
+                ->delete('apartment_reservations', ['id' => $reservationId]);
+        }
+        return new Redirect("/reservations/{$apartmentId}/show");
     }
 
 }
