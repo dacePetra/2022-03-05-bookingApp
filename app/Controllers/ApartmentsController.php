@@ -6,6 +6,8 @@ use App\Database;
 use App\Models\Apartment;
 use App\Models\Review;
 use App\Redirect;
+use App\Services\Apartment\Delete\DeleteApartmentRequest;
+use App\Services\Apartment\Delete\DeleteApartmentService;
 use App\Views\View;
 use Carbon\Carbon;
 
@@ -205,27 +207,31 @@ class ApartmentsController
         return new Redirect('/apartments');
     }
 
-    public function delete(array $vars): Redirect         //TODO delete also reservations
+    public function delete(array $vars): Redirect
     {
         $apartmentId = (int)$vars['id'];
-        $apartmentQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('*')
-            ->from('apartments')
-            ->where('id = ?')
-            ->setParameter(0, $apartmentId)
-            ->executeQuery()
-            ->fetchAssociative();
-
         $activeId = $_SESSION["id"];
-        if ($activeId == $apartmentQuery['owner_id']) {
-            Database::connection()
-                ->delete('apartments', ['id' => $apartmentId]);
-            Database::connection()
-                ->delete('apartment_reviews', ['apartment_id' => $apartmentId]);
-            Database::connection()
-                ->delete('apartment_reservations', ['apartment_id' => $apartmentId]);
-        }
+
+        $request = new DeleteApartmentRequest($apartmentId, $activeId);
+        $service = new DeleteApartmentService();
+        $service->execute($request);
+
+//        $apartmentQuery = Database::connection()
+//            ->createQueryBuilder()
+//            ->select('*')
+//            ->from('apartments')
+//            ->where('id = ?')
+//            ->setParameter(0, $apartmentId)
+//            ->executeQuery()
+//            ->fetchAssociative();
+////        if ($activeId == $apartmentQuery['owner_id']) {
+//            Database::connection()
+//                ->delete('apartments', ['id' => $apartmentId]);
+//            Database::connection()
+//                ->delete('apartment_reviews', ['apartment_id' => $apartmentId]);
+//            Database::connection()
+//                ->delete('apartment_reservations', ['apartment_id' => $apartmentId]);
+//        }
         return new Redirect('/apartments');
     }
 

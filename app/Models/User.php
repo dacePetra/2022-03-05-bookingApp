@@ -52,7 +52,7 @@ class User
     {
         return $this->password;
     }
-    public function getId(): string
+    public function getId(): int
     {
         return $this->id;
     }

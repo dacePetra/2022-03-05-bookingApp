@@ -12,9 +12,9 @@ class Database
     {
         if (self::$connection === null) {
             $connectionParams = [
-                'dbname' => 'bookingApp',
-                'user' => 'root',
-                'password' => '',
+                'dbname' => 'bookingapp',
+                'user' => 'admin',
+                'password' => 'Avene22',
                 'host' => '127.0.0.1',
                 'driver' => 'pdo_mysql',
             ];
