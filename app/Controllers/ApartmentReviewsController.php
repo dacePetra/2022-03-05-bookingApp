@@ -47,14 +47,6 @@ class ApartmentReviewsController
         $service = new SaveReviewService();
         $request = new SaveReviewRequest($apartmentId, $active, $activeId, $_POST['review'], $rating);
         $service->execute($request);
-//        Database::connection()
-//            ->insert('apartment_reviews', [
-//                'apartment_id' => $apartmentId,
-//                'author' => $active,
-//                'author_id' => $activeId,
-//                'text' => $_POST['review'],
-//                'rating' => $rating
-//            ]);
 
         $reviewsQuery = Database::connection()
             ->createQueryBuilder()
