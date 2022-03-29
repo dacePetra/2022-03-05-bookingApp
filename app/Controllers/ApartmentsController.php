@@ -92,12 +92,12 @@ class ApartmentsController
             foreach ($reviewsQuery as $reviewData) {
                 $reviews [] = new Review(
                     $reviewData['apartment_id'],
-                    $reviewData['created_at'],
                     $reviewData['author'],
                     $reviewData['author_id'],
                     $reviewData['text'],
                     $reviewData['rating'],
-                    $reviewData['id']
+                    $reviewData['id'],
+                    $reviewData['created_at']
                 );
             }
 

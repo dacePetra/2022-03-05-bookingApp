@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Database;
 use App\Models\Apartment;
 use App\Redirect;
+use App\Services\Review\Save\SaveReviewRequest;
+use App\Services\Review\Save\SaveReviewService;
 
 class ApartmentReviewsController
 {
@@ -42,15 +44,17 @@ class ApartmentReviewsController
         }
 
         // Review field is "required", no need to check if review is empty
-
-        Database::connection()
-            ->insert('apartment_reviews', [
-                'apartment_id' => $apartmentId,
-                'author' => $active,
-                'author_id' => $activeId,
-                'text' => $_POST['review'],
-                'rating' => $rating
-            ]);
+        $service = new SaveReviewService();
+        $request = new SaveReviewRequest($apartmentId, $active, $activeId, $_POST['review'], $rating);
+        $service->execute($request);
+//        Database::connection()
+//            ->insert('apartment_reviews', [
+//                'apartment_id' => $apartmentId,
+//                'author' => $active,
+//                'author_id' => $activeId,
+//                'text' => $_POST['review'],
+//                'rating' => $rating
+//            ]);
 
         $reviewsQuery = Database::connection()
             ->createQueryBuilder()

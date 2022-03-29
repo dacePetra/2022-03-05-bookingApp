@@ -5,7 +5,6 @@ namespace App\Controllers;
 use App\Database;
 use App\Models\Apartment;
 use App\Models\Reservation;
-use App\Models\User;
 use App\Redirect;
 use App\Services\User\EmailNotRegistered\EmailNotRegisteredService;
 use App\Services\User\EmailRegistered\EmailRegisteredService;
@@ -255,8 +254,8 @@ class UsersController
         $userProfileData = $service->execute($userData['id']);
 
         // Saving active user data in session
-        $_SESSION["fullName"] = $userProfileData['name'] . " " . $userProfileData['surname'];
-        $_SESSION["id"] = $userProfileData['user_id'];
+        $_SESSION["fullName"] = $userProfileData->getName() . " " . $userProfileData->getSurname();
+        $_SESSION["id"] = $userProfileData->getId();
 
         return new Redirect('/welcome');
     }

@@ -1,26 +1,22 @@
 <?php
 
-namespace App\Models;
+namespace App\Services\Review\Save;
 
-class Review
+class SaveReviewRequest
 {
     private int $apartmentId;
     private string $author;
     private int $authorId;
     private string $text;
     private int $rating;
-    private ?int $id = null;
-    private ?string $createdAt = null;
 
-    public function __construct(int $apartmentId, string $author, int $authorId, string $text, int $rating, ?int $id = null, ?string $createdAt = null)
+    public function __construct(int $apartmentId, string $author, int $authorId, string $text, int $rating)
     {
         $this->apartmentId = $apartmentId;
         $this->author = $author;
         $this->authorId = $authorId;
         $this->text = $text;
         $this->rating = $rating;
-        $this->id = $id;
-        $this->createdAt = $createdAt;
     }
 
     public function getApartmentId(): int
@@ -48,13 +44,4 @@ class Review
         return $this->rating;
     }
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
-
-    public function getCreatedAt(): string
-    {
-        return $this->createdAt;
-    }
 }
