@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Models;
+namespace App\Services\Apartment\Create;
 
-class Apartment
+class CreateApartmentRequest
 {
     private string $name;
     private string $address;
@@ -12,9 +12,8 @@ class Apartment
     private int $ownerId;
     private float $price;
     private int $rating;
-    private ?int $id = null;
 
-    public function __construct(string $name, string $address, string $description, string $availableFrom, string $availableTo, int $ownerId, float $price, int $rating, ?int $id = null)
+    public function __construct(string $name, string $address, string $description, string $availableFrom, string $availableTo, int $ownerId, float $price, int $rating)
     {
         $this->name = $name;
         $this->address = $address;
@@ -24,7 +23,6 @@ class Apartment
         $this->ownerId = $ownerId;
         $this->price = $price;
         $this->rating = $rating;
-        $this->id = $id;
     }
 
     public function getName(): string
@@ -32,14 +30,14 @@ class Apartment
         return $this->name;
     }
 
-    public function getDescription(): string
-    {
-        return $this->description;
-    }
-
     public function getAddress(): string
     {
         return $this->address;
+    }
+
+    public function getDescription(): string
+    {
+        return $this->description;
     }
 
     public function getAvailableFrom(): string
@@ -67,8 +65,4 @@ class Apartment
         return $this->rating;
     }
 
-    public function getId(): int
-    {
-        return $this->id;
-    }
 }

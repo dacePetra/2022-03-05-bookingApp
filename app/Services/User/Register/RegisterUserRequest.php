@@ -1,26 +1,22 @@
 <?php
 
-namespace App\Models;
+namespace App\Services\User\Register;
 
-class User
+class RegisterUserRequest
 {
     private string $name;
     private string $surname;
     private string $birthday;
     private string $email;
     private string $password;
-    private ?int $id = null;
-    private ?string $createdAt = null;
 
-    public function __construct(string $name, string $surname, string $birthday, string $email, string $password, ?int $id = null, ?string $createdAt = null)
+    public function __construct(string $name, string $surname, string $birthday, string $email, string $password)
     {
         $this->name = $name;
         $this->surname = $surname;
         $this->birthday = $birthday;
         $this->email = $email;
         $this->password = $password;
-        $this->id = $id;
-        $this->createdAt = $createdAt;
     }
 
     public function getName(): string
@@ -42,20 +38,8 @@ class User
     {
         return $this->email;
     }
-
     public function getPassword(): string
     {
         return $this->password;
     }
-
-    public function getId(): int
-    {
-        return $this->id;
-    }
-
-    public function getCreatedAt(): string
-    {
-        return $this->createdAt;
-    }
-
 }

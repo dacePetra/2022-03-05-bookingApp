@@ -3,10 +3,28 @@
 namespace App\Repositories\Apartment;
 
 use App\Database;
+use App\Models\Apartment;
 
 class MySqlApartmentRepository implements ApartmentRepository
 {
-    public function delete(int $apartmentId, int $activeId)
+
+
+    public function save(Apartment $apartment)
+    {
+        Database::connection()
+            ->insert('apartments', [
+                'name' => $apartment->getName(),
+                'address' => $apartment->getAddress(),
+                'description' => $apartment->getDescription(),
+                'available_from' => $apartment->getAvailableFrom(),
+                'available_to' => $apartment->getAvailableTo(),
+                'owner_id' => $apartment->getOwnerId(),
+                'price' => $apartment->getPrice(),
+                'rating' => $apartment->getRating()
+            ]);
+    }
+
+    public function delete(int $apartmentId, int $activeId):void
     {
         $apartmentQuery = Database::connection()
             ->createQueryBuilder()

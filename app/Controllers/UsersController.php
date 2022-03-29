@@ -7,6 +7,13 @@ use App\Models\Apartment;
 use App\Models\Reservation;
 use App\Models\User;
 use App\Redirect;
+use App\Services\User\EmailNotRegistered\EmailNotRegisteredService;
+use App\Services\User\EmailRegistered\EmailRegisteredService;
+use App\Services\User\Enter\EnterUserService;
+use App\Services\User\Index\IndexUserService;
+use App\Services\User\Register\RegisterUserRequest;
+use App\Services\User\Register\RegisterUserService;
+use App\Services\User\Show\ShowUserService;
 use App\Views\View;
 use Carbon\Carbon;
 
@@ -14,36 +21,9 @@ class UsersController
 {
     public function index(): View
     {
-        $userProfilesQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('*')
-            ->from('user_profiles')
-            ->executeQuery()
-            ->fetchAllAssociative();
+        $service = new IndexUserService();
+        $users = $service->execute();
 
-        $usersQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('*')
-            ->from('users')
-            ->executeQuery()
-            ->fetchAllAssociative();
-
-        $users = [];
-        foreach ($usersQuery as $userData) {
-            foreach ($userProfilesQuery as $userProfileData) {
-                if ($userData['id'] == $userProfileData['user_id']) {
-                    $users [] = new User(
-                        $userProfileData['name'],
-                        $userProfileData['surname'],
-                        $userProfileData['birthday'],
-                        $userData['email'],
-                        $userData['password'],
-                        $userData['created_at'],
-                        $userData['id']
-                    );
-                }
-            }
-        }
         $active = $_SESSION["fullName"];
         $activeId = (int)$_SESSION["id"];
 
@@ -56,37 +36,11 @@ class UsersController
 
     public function show(array $vars): View
     {
-        $userProfilesQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('*')
-            ->from('user_profiles')
-            ->where('user_id = ?')
-            ->setParameter(0, (int)$vars['id'])
-            ->executeQuery()
-            ->fetchAssociative();
-
-        $usersQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('*')
-            ->from('users')
-            ->where('id = ?')
-            ->setParameter(0, (int)$vars['id'])
-            ->executeQuery()
-            ->fetchAssociative();
-
-
-        $user = new User(
-            $userProfilesQuery['name'],
-            $userProfilesQuery['surname'],
-            $userProfilesQuery['birthday'],
-            $usersQuery['email'],
-            $usersQuery['password'],
-            $usersQuery['created_at'],
-            $usersQuery['id']
-        );
-
         $active = $_SESSION["fullName"];
         $activeId = (int)$_SESSION["id"];
+        $apartmentId = (int)$vars['id'];
+        $service = new ShowUserService();
+        $user = $service->execute($apartmentId);
 
         return new View('Users/show', [
             'user' => $user,
@@ -101,6 +55,7 @@ class UsersController
         $surname =$_SESSION['surname'];
         $birthday =$_SESSION['birthday'];
         $email =$_SESSION['email'];
+
         unset($_SESSION["name"]);
         unset($_SESSION["surname"]);
         unset($_SESSION["birthday"]);
@@ -206,14 +161,11 @@ class UsersController
             return new Redirect('/users/signup');
         }
         //Validation: is email already registered in database?
-        $usersQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('email')
-            ->from('users')
-            ->where("email = '{$_POST['email']}'")
-            ->executeQuery()
-            ->fetchAssociative();
-        if ($usersQuery != false) {
+        $email = $_POST['email'];
+        $service = new EmailNotRegisteredService();
+
+        // 1=>email is already registered or 0=>email is not registered
+        if ($service->execute($email) == 1) {
             $_SESSION["usedEmail"] = "E-mail is already registered in BookingApp database";
             $_SESSION["name"] =$_POST['name'];
             $_SESSION["surname"] =$_POST['surname'];
@@ -246,28 +198,9 @@ class UsersController
         $hashedPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
         // Saving user data in database (to 2 tables: users & user_profiles)
-        Database::connection()
-            ->insert('users', [
-                'email' => $_POST['email'],
-                'password' => $hashedPassword
-            ]);
-        $usersQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('email, id')
-            ->from('users')
-            ->where('email = ?')
-            ->setParameter(0, $_POST['email'])
-            ->executeQuery()
-            ->fetchAssociative();
-
-        $id = $usersQuery["id"];
-        Database::connection()
-            ->insert('user_profiles', [
-                'user_id' => $id,
-                'name' => $_POST['name'],
-                'surname' => $_POST['surname'],
-                'birthday' => $_POST['birthday']
-            ]);
+        $request = new RegisterUserRequest($_POST['name'], $_POST['surname'], $_POST['birthday'], $_POST['email'], $hashedPassword);
+        $service = new RegisterUserService();
+        $service->execute($request);
 
         return new Redirect('/');
     }
@@ -298,43 +231,32 @@ class UsersController
 
     public function enter(array $vars): Redirect
     {
+        $email = $_POST['email'];
         // Getting user data to validate login inputs
-        $usersQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('email, password, created_at, id')
-            ->from('users')
-            ->where('email = ?')
-            ->setParameter(0, $_POST['email'])
-            ->executeQuery()
-            ->fetchAssociative();
+        $service = new EmailRegisteredService();
+        $userData = $service->execute($email);
 
         //Validation: is email registered in database?
-        if ($usersQuery == false) {
+        if ($userData['email'] == null) {
             $_SESSION["unknownEmail"] = "This e-mail is not registered in BookingApp database";
             $_SESSION["email"] =$_POST['email'];
             return new Redirect('/users/login');
         }
 
         //Validation: is password correct?
-        if (!password_verify($_POST['password'], $usersQuery['password'])) {
+        if (!password_verify($_POST['password'], $userData['password'])) {
             $_SESSION["wrongPassword"] = "Wrong password";
             $_SESSION["email"] =$_POST['email'];
             return new Redirect('/users/login');
         }
 
         // Getting user_profile data to save active user info
-        $userProfilesQuery = Database::connection()
-            ->createQueryBuilder()
-            ->select('*')
-            ->from('user_profiles')
-            ->where('user_id = ?')
-            ->setParameter(0, (int)$usersQuery["id"])
-            ->executeQuery()
-            ->fetchAssociative();
+        $service = new EnterUserService();
+        $userProfileData = $service->execute($userData['id']);
 
         // Saving active user data in session
-        $_SESSION["fullName"] = $userProfilesQuery['name'] . " " . $userProfilesQuery['surname'];
-        $_SESSION["id"] = $userProfilesQuery['user_id'];
+        $_SESSION["fullName"] = $userProfileData['name'] . " " . $userProfileData['surname'];
+        $_SESSION["id"] = $userProfileData['user_id'];
 
         return new Redirect('/welcome');
     }
@@ -365,11 +287,11 @@ class UsersController
         $apartmentIds = [];
         foreach ($apartmentReservationsQuery as $apartmentReservationData) {
             $reservations [] = new Reservation(
-                $apartmentReservationData['id'],
                 $apartmentReservationData['apartment_id'],
                 $apartmentReservationData['user_id'],
                 $apartmentReservationData['reserved_from'],
-                $apartmentReservationData['reserved_to']
+                $apartmentReservationData['reserved_to'],
+                $apartmentReservationData['id']
             );
             $apartmentIds [] = $apartmentReservationData['apartment_id'];
         }
@@ -386,7 +308,6 @@ class UsersController
                 ->fetchAssociative();
 
             $apartments [] = new Apartment(
-                $apartmentQuery['id'],
                 $apartmentQuery['name'],
                 $apartmentQuery['address'],
                 $apartmentQuery['description'],
@@ -394,7 +315,8 @@ class UsersController
                 $apartmentQuery['available_to'],
                 $apartmentQuery['owner_id'],
                 $apartmentQuery['price'],
-                $apartmentQuery['rating']
+                $apartmentQuery['rating'],
+                $apartmentQuery['id']
             );
         }
 
@@ -423,7 +345,6 @@ class UsersController
         $apartments = [];
         foreach ($apartmentsQuery as $apartmentData) {
             $apartments [] = new Apartment(
-                $apartmentData['id'],
                 $apartmentData['name'],
                 $apartmentData['address'],
                 $apartmentData['description'],
@@ -431,7 +352,8 @@ class UsersController
                 $apartmentData['available_to'],
                 $apartmentData['owner_id'],
                 $apartmentData['price'],
-                $apartmentData['rating']
+                $apartmentData['rating'],
+                $apartmentData['id']
             );
 
         }

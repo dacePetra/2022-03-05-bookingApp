@@ -4,24 +4,19 @@ namespace App\Models;
 
 class Reservation
 {
-    private int $id;
     private int $apartmentId;
     private int $userId;
     private string $reservedFrom;
     private string $reservedTo;
+    private ?int $id = null;
 
-    public function __construct(int $id, int $apartmentId, int $userId, string $reservedFrom, string $reservedTo)
+    public function __construct(int $apartmentId, int $userId, string $reservedFrom, string $reservedTo, ?int $id = null)
     {
-        $this->id = $id;
         $this->apartmentId = $apartmentId;
         $this->userId = $userId;
         $this->reservedFrom = $reservedFrom;
         $this->reservedTo = $reservedTo;
-    }
-
-    public function getId(): int
-    {
-        return $this->id;
+        $this->id = $id;
     }
 
     public function getApartmentId(): int
@@ -42,6 +37,11 @@ class Reservation
     public function getReservedTo(): string
     {
         return $this->reservedTo;
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
     }
 
 }

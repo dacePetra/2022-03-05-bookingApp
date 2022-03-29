@@ -29,7 +29,6 @@ class ApartmentReservationsController
             ->fetchAssociative();
 
         $apartment = new Apartment(
-            $apartmentQuery['id'],
             $apartmentQuery['name'],
             $apartmentQuery['address'],
             $apartmentQuery['description'],
@@ -37,7 +36,8 @@ class ApartmentReservationsController
             $apartmentQuery['available_to'],
             $apartmentQuery['owner_id'],
             $apartmentQuery['price'],
-            $apartmentQuery['rating']
+            $apartmentQuery['rating'],
+            $apartmentQuery['id']
         );
 
         $apartmentReservationsQuery = Database::connection()
@@ -54,11 +54,11 @@ class ApartmentReservationsController
         $guestIds = [];
         foreach ($apartmentReservationsQuery as $apartmentReservationData) {
             $reservations [] = new Reservation(
-                $apartmentReservationData['id'],
                 $apartmentReservationData['apartment_id'],
                 $apartmentReservationData['user_id'],
                 $apartmentReservationData['reserved_from'],
-                $apartmentReservationData['reserved_to']
+                $apartmentReservationData['reserved_to'],
+                $apartmentReservationData['id']
             );
             $guestIds [] = $apartmentReservationData['user_id'];
         }
@@ -89,8 +89,8 @@ class ApartmentReservationsController
                 $userProfileQuery['birthday'],
                 $usersQuery['email'],
                 $usersQuery['password'],
-                $usersQuery['created_at'],
-                $usersQuery['id']
+                $usersQuery['id'],
+                $usersQuery['created_at']
             );
         }
 
@@ -119,7 +119,6 @@ class ApartmentReservationsController
             ->fetchAssociative();
 
         $apartment = new Apartment(
-            $apartmentQuery['id'],
             $apartmentQuery['name'],
             $apartmentQuery['address'],
             $apartmentQuery['description'],
@@ -127,7 +126,8 @@ class ApartmentReservationsController
             $apartmentQuery['available_to'],
             $apartmentQuery['owner_id'],
             $apartmentQuery['price'],
-            $apartmentQuery['rating']
+            $apartmentQuery['rating'],
+            $apartmentQuery['id']
         );
 
         $emptyInputDates = "";
